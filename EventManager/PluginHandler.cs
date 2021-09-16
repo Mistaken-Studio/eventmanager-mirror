@@ -23,7 +23,7 @@ namespace Mistaken.EventManager
         public override string Prefix => "EM";
 
         /// <inheritdoc/>
-        public override PluginPriority Priority => PluginPriority.Highest;
+        public override PluginPriority Priority => PluginPriority.Higher - 1;
 
         /// <inheritdoc/>
         public override Version RequiredExiledVersion => new Version(3, 0, 0, 84);
@@ -32,10 +32,10 @@ namespace Mistaken.EventManager
         public override void OnEnabled()
         {
             Instance = this;
-            API.Diagnostics.Module.OnEnable(this);
 
             new EventManager(this);
 
+            API.Diagnostics.Module.OnEnable(this);
             base.OnEnabled();
         }
 
@@ -43,7 +43,6 @@ namespace Mistaken.EventManager
         public override void OnDisabled()
         {
             API.Diagnostics.Module.OnDisable(this);
-
             base.OnDisabled();
         }
 
