@@ -1,0 +1,159 @@
+﻿// <copyright file="EventManager.cs" company="Mistaken">
+// Copyright (c) Mistaken. All rights reserved.
+// </copyright>
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Exiled.API.Features;
+using Exiled.API.Interfaces;
+using Mistaken.API.Diagnostics;
+using Mistaken.EventManager.EventCreator;
+
+namespace Mistaken.EventManager
+{
+    /// <summary>
+    /// Event Manager.
+    /// </summary>
+    internal class EventManager : Module
+    {
+        public const bool DNPN = true;
+
+        /// <summary>
+        /// Dictionary of loaded Events.
+        /// </summary>
+        public static readonly Dictionary<string, IEMEventClass> Events = new Dictionary<string, IEMEventClass>();
+
+        public static IEMEventClass ActiveEvent { get; set; }
+
+        /// <summary>
+        /// Checks if any Event is active.
+        /// </summary>
+        /// <returns>true if any Event is active.</returns>
+        public static bool EventActive() => ActiveEvent != null;
+
+        /// <inheritdoc cref="Module.Module(IPlugin{IConfig})"/>
+        public EventManager(PluginHandler p)
+            : base(p)
+        {
+            this.LoadEvents();
+        }
+
+        /// <inheritdoc/>
+        public override string Name => nameof(EventManager);
+
+        /// <inheritdoc/>
+        public override void OnEnable()
+        {
+            Exiled.Events.Handlers.Server.RoundStarted += this.Handle(() => this.Server_RoundStarted(), "RoundStart");
+            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
+            Exiled.Events.Handlers.Server.RestartingRound += this.Handle(() => this.Server_RestartingRound(), "RoundRestart");
+            Exiled.Events.Handlers.Player.Verified += this.Handle<Exiled.Events.EventArgs.VerifiedEventArgs>((ev) => this.Player_Verified(ev));
+            Exiled.Events.Handlers.Player.Died += this.Handle<Exiled.Events.EventArgs.DiedEventArgs>((ev) => this.Player_Died(ev));
+            Exiled.Events.Handlers.Player.Escaping += this.Handle<Exiled.Events.EventArgs.EscapingEventArgs>((ev) => this.Player_Escaping(ev));
+        }
+
+        /// <inheritdoc/>
+        public override void OnDisable()
+        {
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Handle(() => this.Server_RoundStarted(), "RoundStart");
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
+            Exiled.Events.Handlers.Server.RestartingRound -= this.Handle(() => this.Server_RestartingRound(), "RoundRestart");
+            Exiled.Events.Handlers.Player.Verified -= this.Handle<Exiled.Events.EventArgs.VerifiedEventArgs>((ev) => this.Player_Verified(ev));
+            Exiled.Events.Handlers.Player.Died -= this.Handle<Exiled.Events.EventArgs.DiedEventArgs>((ev) => this.Player_Died(ev));
+            Exiled.Events.Handlers.Player.Escaping -= this.Handle<Exiled.Events.EventArgs.EscapingEventArgs>((ev) => this.Player_Escaping(ev));
+        }
+
+        /// <summary>
+        /// Loads Events.
+        /// </summary>
+        public void LoadEvents()
+        {
+            this.Log.Info("Loading Events Started");
+            foreach (Type t in System.Reflection.Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsClass && !x.IsAbstract && x.IsSubclassOf(typeof(IEMEventClass))))
+            {
+                this.PrepareEvent(Activator.CreateInstance(t) as IEMEventClass);
+            }
+
+            this.Log.Info("Loading Events Completed");
+        }
+
+        internal static readonly string EMLB = $"[<color=#6B9ADF><b>Event Manager</b></color> {(DNPN ? "<color=#6B9ADF>Test Build</color>" : string.Empty)}] ";
+
+        /// <summary>
+        /// Gets or sets queue of Events.
+        /// </summary>
+        internal static Queue<IEMEventClass> EventQueue { get; set; } = new Queue<IEMEventClass>();
+
+        private void PrepareEvent(IEMEventClass ev)
+        {
+            Events[ev.Id] = ev;
+            this.Log.Info("Event Loaded: " + ev.Id);
+        }
+
+        private void Server_WaitingForPlayers()
+        {
+            if (!EventActive() && EventQueue.TryDequeue(out var eventClass))
+            {
+                this.Log.Debug(eventClass.Id, true);
+                try
+                {
+                    eventClass.Initiate();
+                }
+                catch (Exception ex)
+                {
+                    this.Log.Debug(ex, true);
+                }
+            }
+            else
+            {
+                this.Log.Debug(EventQueue.Count, true);
+                this.Log.Debug(EventActive().ToString(), true);
+                this.Log.Debug("zesrało się nitka", true);
+            }
+        }
+
+        private void Server_RoundStarted()
+        {
+            if (EventActive())
+                Map.Broadcast(5, EMLB + $"<color=#6B9ADF>{ActiveEvent.Name}</color>");
+        }
+
+        private void Server_RestartingRound()
+        {
+            if (ActiveEvent?.Active ?? false)
+                ActiveEvent.DeInitiate();
+        }
+
+        private void Player_Verified(Exiled.Events.EventArgs.VerifiedEventArgs ev)
+        {
+            if (EventActive())
+                ev.Player.Broadcast(10, $"{EMLB} Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
+        }
+
+        private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
+        {
+            if (!EventActive())
+                return;
+            if (ActiveEvent is IWinOnEscape)
+                ActiveEvent.OnEnd(ev.Player.Nickname);
+        }
+
+        private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
+        {
+            if (!EventActive())
+                return;
+            var players = Mistaken.API.RealPlayers.List.Where(p => p.IsAlive && p.Id != ev.Target.Id && p.IsHuman).ToList();
+            if (players.Count == 1 && ActiveEvent is IWinOnLastAlive)
+                ActiveEvent.OnEnd(players[0].Nickname);
+            else if (players.Count == 0 && ActiveEvent is IEndOnNoAlive)
+                ActiveEvent.OnEnd();
+            if (ActiveEvent is IAnnouncePlayersAlive && players.Count > 1)
+            {
+                Map.ClearBroadcasts();
+                Map.Broadcast(5, EMLB + $"Zostało {players.Count} <color=#6B9ADF>żywych</color>");
+            }
+        }
+    }
+}
