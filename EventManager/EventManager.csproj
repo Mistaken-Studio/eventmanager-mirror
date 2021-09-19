@@ -61,6 +61,7 @@
     <Compile Include="Events\Achtung.cs" />
     <Compile Include="Events\BlackDeath.cs" />
     <Compile Include="Events\Blackout.cs" />
+    <Compile Include="Events\WDB.cs" />
     <Compile Include="Events\Blank.cs" />
     <Compile Include="Events\CodeWhite.cs" />
     <Compile Include="Events\CTF.cs" />
