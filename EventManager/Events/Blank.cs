@@ -5,11 +5,11 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Mistaken.EventManager.EventCreator;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Blank :
-        EventCreator.IEMEventClass
+    internal class Blank : IEMEventClass
     {
         public override string Id => "blank";
 
