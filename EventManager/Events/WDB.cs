@@ -10,7 +10,6 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Exiled.Events.EventArgs;
 using MEC;
 using Mistaken.API;
 using Mistaken.API.Extensions;
@@ -91,45 +90,54 @@ namespace Mistaken.EventManager.Events
             float converter = 1f;
             API.Extensions.Extensions.Shuffle(ev.Players);
 
-            if (this.respawnCounter == 0)
+            switch (this.respawnCounter)
             {
-                foreach (var player in ev.Players)
-                {
-                    if (converter % 1 == 0)
+                case 0:
                     {
-                        player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
-                    }
-                    else
-                    {
-                        player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+                        foreach (var player in ev.Players)
+                        {
+                            if (converter % 1 == 0)
+                            {
+                                player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                            }
+                            else
+                            {
+                                player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+                            }
+
+                            converter += 0.2f;
+                        }
                     }
 
-                    converter += 0.2f;
-                }
-            }
-            else if (this.respawnCounter == 1)
-            {
-                foreach (var player in ev.Players)
-                {
-                    if (converter % 1 == 0)
+                    break;
+                case 1:
                     {
-                        player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
-                    }
-                    else
-                    {
-                        player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+                        foreach (var player in ev.Players)
+                        {
+                            if (converter % 1 == 0)
+                            {
+                                player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                            }
+                            else
+                            {
+                                player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+                            }
+
+                            converter += 0.1f;
+                        }
                     }
 
-                    converter += 0.1f;
-                }
-            }
-            else
-            {
-                ev.Players[0].Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
-                for (int i = 1; i < ev.Players.Count; i++)
-                {
-                    ev.Players[i].SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
-                }
+                    break;
+                default:
+                    {
+                        ev.Players[0].Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                        for (int i = 1; i < ev.Players.Count; i++)
+                        {
+                            ev.Players[i].SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+                        }
+                    }
+
+                    break;
             }
 
             this.respawnCounter++;
@@ -149,7 +157,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        private void Player_Hurting(HurtingEventArgs ev)
+        private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
             if (ev.Attacker.Role == RoleType.Scp0492 && !this.infected[ev.Target])
             {
