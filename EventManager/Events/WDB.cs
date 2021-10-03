@@ -176,7 +176,7 @@ namespace Mistaken.EventManager.Events
                 Timing.CallDelayed(0.1f, () => { ev.Target.Role = RoleType.Scp0492; });
             }
         }
-        
+
         private IEnumerator<float> UpdateInfected()
         {
             while (this.Active)
@@ -189,7 +189,6 @@ namespace Mistaken.EventManager.Events
                         if (!this.infected[player])
                             this.infected[player] = true;
                     }
-
                     else if (player.Role == RoleType.Scp0492)
                     {
                         this.infected[player] = false;
