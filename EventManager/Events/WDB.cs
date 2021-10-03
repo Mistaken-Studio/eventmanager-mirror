@@ -70,6 +70,8 @@ namespace Mistaken.EventManager.Events
                 player.SlowChangeRole(RoleType.Scp0492, RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
             }
 
+            MEC.Timing.RunCoroutine(this.UpdateInfected());
+
             Timing.CallDelayed(60 * 20, () =>
             {
                 if (!this.Active)
@@ -159,9 +161,11 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
-            if (ev.Attacker.Role == RoleType.Scp0492 && !this.infected[ev.Target])
+            if (ev.Attacker.Role == RoleType.Scp0492)
             {
-                this.infected[ev.Target] = true;
+                ev.Amount = 1;
+                if (!this.infected[ev.Target])
+                    this.infected[ev.Target] = true;
             }
         }
 
@@ -170,6 +174,24 @@ namespace Mistaken.EventManager.Events
             if (this.infected[ev.Target])
             {
                 Timing.CallDelayed(0.1f, () => { ev.Target.Role = RoleType.Scp0492; });
+            }
+        }
+        
+        private IEnumerator<float> UpdateInfected()
+        {
+            while (this.Active)
+            {
+                yield return Timing.WaitForSeconds(2f);
+                foreach (var player in RealPlayers.RandomList)
+                {
+                    if (player.CurrentRoom.Type == RoomType.Surface)
+                    {
+                        if (!this.infected[player])
+                            this.infected[player] = true;
+                    }
+                    player.EnableEffect<CustomPlayerEffects.Poisoned>();
+                    player.EnableEffect<CustomPlayerEffects.Concussed>();
+                }
             }
         }
     }
