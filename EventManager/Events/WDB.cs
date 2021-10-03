@@ -189,6 +189,12 @@ namespace Mistaken.EventManager.Events
                         if (!this.infected[player])
                             this.infected[player] = true;
                     }
+
+                    else if (player.Role == RoleType.Scp0492)
+                    {
+                        this.infected[player] = false;
+                    }
+
                     if (this.infected[player])
                     {
                         player.EnableEffect<CustomPlayerEffects.Poisoned>();
