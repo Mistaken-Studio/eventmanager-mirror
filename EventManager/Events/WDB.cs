@@ -189,8 +189,11 @@ namespace Mistaken.EventManager.Events
                         if (!this.infected[player])
                             this.infected[player] = true;
                     }
-                    player.EnableEffect<CustomPlayerEffects.Poisoned>();
-                    player.EnableEffect<CustomPlayerEffects.Concussed>();
+                    if (this.infected[player])
+                    {
+                        player.EnableEffect<CustomPlayerEffects.Poisoned>();
+                        player.EnableEffect<CustomPlayerEffects.Concussed>();
+                    }
                 }
             }
         }
