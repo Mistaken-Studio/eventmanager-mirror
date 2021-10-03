@@ -66,11 +66,9 @@ namespace Mistaken.EventManager.Events
             }
 
             foreach (var player in RealPlayers.Get(Team.SCP))
-            {
                 player.SlowChangeRole(RoleType.Scp0492, RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
-            }
 
-            MEC.Timing.RunCoroutine(this.UpdateInfected());
+            Timing.RunCoroutine(this.UpdateInfected());
 
             Timing.CallDelayed(60 * 20, () =>
             {
@@ -99,13 +97,9 @@ namespace Mistaken.EventManager.Events
                         foreach (var player in ev.Players)
                         {
                             if (converter % 1 == 0)
-                            {
                                 player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
-                            }
                             else
-                            {
                                 player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
-                            }
 
                             converter += 0.2f;
                         }
@@ -117,13 +111,9 @@ namespace Mistaken.EventManager.Events
                         foreach (var player in ev.Players)
                         {
                             if (converter % 1 == 0)
-                            {
                                 player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
-                            }
                             else
-                            {
                                 player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
-                            }
 
                             converter += 0.1f;
                         }
@@ -134,9 +124,7 @@ namespace Mistaken.EventManager.Events
                     {
                         ev.Players[0].Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
                         for (int i = 1; i < ev.Players.Count; i++)
-                        {
                             ev.Players[i].SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
-                        }
                     }
 
                     break;
@@ -153,27 +141,31 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.NewRole == RoleType.FacilityGuard)
+            if (ev.IsAllowed)
             {
-                ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1;
+                if (ev.NewRole == RoleType.FacilityGuard)
+                    Timing.CallDelayed(0.1f, () => ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1);
             }
         }
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
-            if (ev.Attacker.Role == RoleType.Scp0492)
+            if (ev.IsAllowed)
             {
-                ev.Amount = 1;
-                if (!this.infected[ev.Target])
+                if (ev.Attacker.Role == RoleType.Scp0492)
+                {
+                    ev.Amount = 1;
                     this.infected[ev.Target] = true;
+                }
             }
         }
 
         private void Player_Dying(Exiled.Events.EventArgs.DyingEventArgs ev)
         {
-            if (this.infected[ev.Target])
+            if (ev.IsAllowed)
             {
-                Timing.CallDelayed(0.1f, () => { ev.Target.Role = RoleType.Scp0492; });
+                if (this.infected[ev.Target])
+                    Timing.CallDelayed(0.1f, () => ev.Target.Role = RoleType.Scp0492);
             }
         }
 
@@ -182,19 +174,12 @@ namespace Mistaken.EventManager.Events
             while (this.Active)
             {
                 yield return Timing.WaitForSeconds(2f);
-                foreach (var player in RealPlayers.RandomList)
+                foreach (var player in RealPlayers.List)
                 {
-                    if (player.CurrentRoom.Type == RoomType.Surface)
-                    {
-                        if (!this.infected[player])
+                    if (player.Position.y > 900 && player.Role != RoleType.Scp0492)
                             this.infected[player] = true;
-                    }
-                    else if (player.Role == RoleType.Scp0492)
-                    {
-                        this.infected[player] = false;
-                    }
 
-                    if (this.infected[player])
+                    if (this.infected[player] && !(player.ActiveEffects.Contains(new CustomPlayerEffects.Poisoned()) && player.ActiveEffects.Contains(new CustomPlayerEffects.Concussed())))
                     {
                         player.EnableEffect<CustomPlayerEffects.Poisoned>();
                         player.EnableEffect<CustomPlayerEffects.Concussed>();
