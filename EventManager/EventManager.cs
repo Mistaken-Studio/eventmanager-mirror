@@ -95,9 +95,9 @@ namespace Mistaken.EventManager
         {
             string @string;
             if (string.IsNullOrEmpty(path))
-                @string = Paths.Plugins + "/EventManager";
+                @string = Paths.Plugins + @"\EventManager";
             else
-                @string = path;
+                @string = path + @"\EventManager";
             this.Log.Debug("Set base path to: " + @string, PluginHandler.Instance.Config.VerbouseOutput);
             if (!Directory.Exists(@string))
             {

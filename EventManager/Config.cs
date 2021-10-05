@@ -19,7 +19,7 @@ namespace Mistaken.EventManager
         /// Gets or sets a value indicating whether debug should be displayed.
         /// </summary>
         [Description("If true then debug will be displayed")]
-        public bool VerbouseOutput { get; set; }
+        public bool VerbouseOutput { get; set; } = true;
 
         /// <inheritdoc/>
         [Description("Auto Update Settings")]
