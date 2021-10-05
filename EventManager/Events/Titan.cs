@@ -83,8 +83,8 @@ namespace Mistaken.EventManager.Events
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
             var players = RealPlayers.List.Where(x => x != ev.Target);
-            if (players.Count(x => x.Team == Team.MTF) == 0) this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!", true);
-            else if (players.Count(x => x.Role == RoleType.ChaosRifleman) == 0) this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
+            if (players.Count(x => x.Team == Team.MTF) == 0) this.OnEnd(null, $"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
+            else if (players.Count(x => x.Role == RoleType.ChaosRifleman) == 0) this.OnEnd(null, "<color=blue>MFO</color> wygrywa!");
             else if (ev.Target.Team == Team.MTF) players.First(x => x.Role == RoleType.ChaosRifleman).ArtificialHealth += 8 * players.Count();
         }
 

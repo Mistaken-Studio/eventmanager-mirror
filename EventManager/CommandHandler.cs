@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using CommandSystem;
 using Exiled.API.Features;
@@ -28,7 +29,7 @@ namespace Mistaken.EventManager
         public static (bool, string[]) ForceEndCommand(string[] args)
         {
             if (EventManager.ActiveEvent == null) return (false, new string[] { "No event is on going" });
-            EventManager.ActiveEvent.OnEnd($"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>", true);
+            EventManager.ActiveEvent.OnEnd(null, $"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
             EventManager.ActiveEvent = null;
             return (true, new string[] { "Done" });
         }
@@ -95,6 +96,13 @@ namespace Mistaken.EventManager
             }
         }
 
+        public static (bool, string[]) ClearWinnersFile(string[] args)
+        {
+            File.WriteAllText(EventManager.BasePath + @"\winners.txt", string.Empty);
+
+            return (true, new string[] { "File cleared" });
+        }
+
         /// <inheritdoc/>
         public override string Command => "EventManager";
 
@@ -142,6 +150,8 @@ namespace Mistaken.EventManager
             { "f", (args) => ForceCommand(args) },
             { "force", (args) => ForceCommand(args) },
             { "forceend", (args) => ForceEndCommand(args) },
+            { "clearwinners", (args) => ClearWinnersFile(args) },
+            { "clw", (args) => ClearWinnersFile(args) },
 
             // {"rwe", (ply,args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.rounds_without_event }); } },
             // {"setrwevent", (ply, args) => SetRWEventCommand(ply,args) },

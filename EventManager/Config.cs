@@ -24,5 +24,11 @@ namespace Mistaken.EventManager
         /// <inheritdoc/>
         [Description("Auto Update Settings")]
         public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; }
+
+        /// <summary>
+        /// Gets or sets a path for the EventManager folder.
+        /// </summary>
+        [Description("Sets the path for the EventManager folder. If not set, it will be created in Plugins folder")]
+        public string EMFolderPath { get; set; }
     }
 }

@@ -117,9 +117,9 @@ namespace Mistaken.EventManager.Events
                 else
                     this.tickets["CI"] += 1;
                 if (this.tickets["MTF"] >= 35 || RealPlayers.List.Count(x => x != ev.Target && x.Role == RoleType.ChaosRifleman) == 0)
-                    this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
+                    this.OnEnd(null, "<color=blue>MFO</color> wygrywa!");
                 else if (this.tickets["CI"] >= 35 || RealPlayers.List.Count(x => x != ev.Target && x.Role == RoleType.NtfSergeant) == 0)
-                    this.OnEnd("<color=green>CI</color> wygrywa!", true);
+                    this.OnEnd(null, "<color=green>CI</color> wygrywa!");
 
                 ev.Target.Broadcast(5, EventManager.EMLB + "Za chwilę się odrodzisz!");
                 MEC.Timing.CallDelayed(5f, () =>

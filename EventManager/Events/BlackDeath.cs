@@ -122,7 +122,7 @@ namespace Mistaken.EventManager.Events
             if (ev.Player.Role == RoleType.ClassD)
                 ev.Player.Position = Map.Doors.First(d => d.Type == DoorType.HczArmory).Base.transform.position + Vector3.up;
             else if (ev.Player.Role == RoleType.Spectator && players == 0)
-                this.OnEnd("<color=red>SCP 106</color>");
+                this.OnEnd(null, "<color=red>SCP 106 wygrywa!</color>");
         }
 
         private void Player_ActivatingGenerator(Exiled.Events.EventArgs.ActivatingGeneratorEventArgs ev)
@@ -138,7 +138,7 @@ namespace Mistaken.EventManager.Events
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
             if (ev.Target.Role == RoleType.Scp106)
-                this.OnEnd("<color=orange>Class D</color>");
+                this.OnEnd(null, "<color=orange>Klasa D wygrywa!</color>");
         }
 
         private void Map_GeneratorActivated(Exiled.Events.EventArgs.GeneratorActivatedEventArgs ev)
@@ -157,7 +157,7 @@ namespace Mistaken.EventManager.Events
                         rh.playerInteract.RpcContain106(rh.gameObject);
                         MEC.Timing.CallDelayed(10, () =>
                         {
-                            this.OnEnd("<color=orange>Class D</color>");
+                            this.OnEnd(null, "<color=orange>Klasa D wygrywa!</color>");
                         });
                     });
                 });

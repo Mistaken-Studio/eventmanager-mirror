@@ -38,6 +38,9 @@ namespace Mistaken.EventManager
             : base(p)
         {
             this.LoadEvents();
+            BasePath = this.SetBasePath(PluginHandler.Instance.Config.EMFolderPath);
+            if (!Directory.GetFiles(BasePath).Contains("winners.txt"))
+                File.Create(BasePath + @"\winners.txt");
         }
 
         /// <inheritdoc/>
@@ -86,6 +89,31 @@ namespace Mistaken.EventManager
         /// </summary>
         internal static Queue<IEMEventClass> EventQueue { get; set; } = new Queue<IEMEventClass>();
 
+        internal static string BasePath { get; private set; }
+
+        private string SetBasePath(string path)
+        {
+            string @string;
+            if (string.IsNullOrEmpty(path))
+                @string = Paths.Plugins + "/EventManager";
+            else
+                @string = path;
+            this.Log.Debug("Set base path to: " + @string, PluginHandler.Instance.Config.VerbouseOutput);
+            if (!Directory.Exists(@string))
+            {
+                try
+                {
+                    Directory.CreateDirectory(@string);
+                }
+                catch (Exception ex)
+                {
+                    this.Log.Error(ex);
+                }
+            }
+
+            return @string;
+        }
+
         private void PrepareEvent(IEMEventClass ev)
         {
             Events[ev.Id] = ev;
@@ -96,21 +124,20 @@ namespace Mistaken.EventManager
         {
             if (!EventActive() && EventQueue.TryDequeue(out var eventClass))
             {
-                this.Log.Debug(eventClass.Id, true);
+                this.Log.Debug(eventClass.Id, PluginHandler.Instance.Config.VerbouseOutput);
                 try
                 {
                     eventClass.Initiate();
                 }
                 catch (Exception ex)
                 {
-                    this.Log.Debug(ex, true);
+                    this.Log.Error(ex);
                 }
             }
             else
             {
-                this.Log.Debug(EventQueue.Count, true);
-                this.Log.Debug(EventActive().ToString(), true);
-                this.Log.Debug("zesrało się nitka", true);
+                this.Log.Debug(EventQueue.Count, PluginHandler.Instance.Config.VerbouseOutput);
+                this.Log.Debug(EventActive().ToString(), PluginHandler.Instance.Config.VerbouseOutput);
             }
         }
 
@@ -137,7 +164,7 @@ namespace Mistaken.EventManager
             if (!EventActive())
                 return;
             if (ActiveEvent is IWinOnEscape)
-                ActiveEvent.OnEnd(ev.Player.Nickname);
+                ActiveEvent.OnEnd(ev.Player);
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
@@ -146,9 +173,9 @@ namespace Mistaken.EventManager
                 return;
             var players = Mistaken.API.RealPlayers.List.Where(p => p.IsAlive && p.Id != ev.Target.Id && p.IsHuman).ToList();
             if (players.Count == 1 && ActiveEvent is IWinOnLastAlive)
-                ActiveEvent.OnEnd(players[0].Nickname);
+                ActiveEvent.OnEnd(players[0]);
             else if (players.Count == 0 && ActiveEvent is IEndOnNoAlive)
-                ActiveEvent.OnEnd();
+                ActiveEvent.OnEnd(null);
             if (ActiveEvent is IAnnouncePlayersAlive && players.Count > 1)
             {
                 Map.ClearBroadcasts();
