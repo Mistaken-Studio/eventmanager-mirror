@@ -62,8 +62,11 @@ namespace Mistaken.EventManager.EventCreator
             else if (string.IsNullOrEmpty(customWinText))
             {
                 Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
-                var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
-                File.AppendAllLines(EventManager.BasePath + @"\winners.txt", new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2] + 1) : 1)}" });
+                if (!player.RemoteAdminAccess)
+                {
+                    var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
+                    File.AppendAllLines(EventManager.BasePath + @"\winners.txt", new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2] + 1) : 1)}" });
+                }
             }
             else
                 Map.Broadcast(10, $"{EventManager.EMLB} {customWinText}");
