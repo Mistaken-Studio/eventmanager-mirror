@@ -26,7 +26,7 @@ namespace Mistaken.EventManager
         public override PluginPriority Priority => PluginPriority.Higher - 1;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(3, 0, 0, 84);
+        public override Version RequiredExiledVersion => new Version(3, 0, 4);
 
         /// <inheritdoc/>
         public override void OnEnabled()
