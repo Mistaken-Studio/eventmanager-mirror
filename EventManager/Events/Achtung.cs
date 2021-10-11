@@ -49,7 +49,7 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             foreach (var player in RealPlayers.List)
                 player.Role = RoleType.ClassD;
-            MEC.Timing.RunCoroutine(this.SpawnGrenades(25));
+            MEC.Timing.RunCoroutine(this.SpawnGrenades(20));
             Map.Broadcast(10, $"{EventManager.EMLB} {this.Translations["D"]}");
         }
 
@@ -71,18 +71,22 @@ namespace Mistaken.EventManager.Events
                     if (time < 7)
                     {
                         yield return MEC.Timing.WaitForSeconds(1);
-                        this.DropGrenadeUnder(player, UnityEngine.Random.Range(0, 3));
+                        this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(0, 3));
                     }
                 }
             }
         }
 
-        private void DropGrenadeUnder(Player player, int force = 0)
+        private void DropGrenadeUnder(Player player, ushort count = 1)
         {
-            var grenade = new Throwable(ItemType.GrenadeHE, player);
-            grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
-            grenade.Base.ThrowSettings.RandomTorqueB = Vector3.zero;
-            grenade.Base.ServerThrow(force, -1, Vector3.zero);
+            for (; count > 0; count--)
+            {
+                var grenade = new Throwable(ItemType.GrenadeHE, player);
+                grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
+                grenade.Base.ThrowSettings.RandomTorqueB = Vector3.zero;
+                grenade.Base.ServerThrow(0, -1, Vector3.zero);
+                count--;
+            }
         }
     }
 }
