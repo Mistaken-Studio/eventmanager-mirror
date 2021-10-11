@@ -7,12 +7,14 @@
 using System.Collections.Generic;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using Mistaken.API;
 using Mistaken.EventManager.EventCreator;
+using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    /*internal class Achtung : IEMEventClass,
+    internal class Achtung : IEMEventClass,
         IWinOnLastAlive,
         IAnnouncePlayersAlive
     {
@@ -47,7 +49,7 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             foreach (var player in RealPlayers.List)
                 player.Role = RoleType.ClassD;
-            this.SpawnGrenades(25);
+            MEC.Timing.RunCoroutine(this.SpawnGrenades(20));
             Map.Broadcast(10, $"{EventManager.EMLB} {this.Translations["D"]}");
         }
 
@@ -56,30 +58,35 @@ namespace Mistaken.EventManager.Events
             MEC.Timing.CallDelayed(1f, () => ev.Player.Position = RoleType.Scp106.GetRandomSpawnProperties().Item1);
         }
 
-        private void SpawnGrenades(float time)
+        private IEnumerator<float> SpawnGrenades(float time)
         {
-            if (!this.Active)
-                return;
-            MEC.Timing.CallDelayed(time, () =>
+            while (this.Active)
             {
-                time--;
-                if (time < 2)
-                    time = 2;
-                this.SpawnGrenades(time);
-                if (!this.Active)
-                    return;
+                yield return MEC.Timing.WaitForSeconds(time);
+                if (time > 2)
+                    time--;
                 foreach (var player in RealPlayers.List)
                 {
-                    player.DropGrenadeUnder(0, 1);
+                    this.DropGrenadeUnder(player);
                     if (time < 7)
                     {
-                        MEC.Timing.CallDelayed(1, () =>
-                        {
-                            player.DropGrenadeUnder(0, UnityEngine.Random.Range(0, 3));
-                        });
+                        yield return MEC.Timing.WaitForSeconds(1);
+                        this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(0, 3));
                     }
                 }
-            });
+            }
         }
-    }*/
+
+        private void DropGrenadeUnder(Player player, ushort count = 1)
+        {
+            for (; count > 0; count--)
+            {
+                var grenade = new Throwable(ItemType.GrenadeHE, player);
+                grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
+                grenade.Base.ThrowSettings.RandomTorqueB = Vector3.zero;
+                grenade.Base.ServerThrow(0, -1, Vector3.zero);
+                count--;
+            }
+        }
+    }
 }
