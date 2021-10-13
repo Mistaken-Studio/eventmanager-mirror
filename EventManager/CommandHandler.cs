@@ -11,6 +11,7 @@ using System.Linq;
 using CommandSystem;
 using Exiled.API.Features;
 using Mistaken.API.Commands;
+using Mistaken.EventManager.EventArgs;
 
 namespace Mistaken.EventManager
 {
@@ -26,7 +27,7 @@ namespace Mistaken.EventManager
             return (true, new string[] { "Done" });
         }*/
 
-        public static (bool, string[]) ForceEndCommand(string[] args)
+        public static (bool, string[]) ForceEndCommand(string[] args, Player sender)
         {
             if (EventManager.ActiveEvent == null) return (false, new string[] { "No event is on going" });
             EventManager.ActiveEvent.OnEnd($"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
@@ -34,7 +35,7 @@ namespace Mistaken.EventManager
             return (true, new string[] { "Done" });
         }
 
-        public static (bool, string[]) ForceCommand(string[] args)
+        public static (bool, string[]) ForceCommand(string[] args, Player sender)
         {
             if (Mistaken.API.RealPlayers.List.Count() < 4 && !EventManager.DNPN) return (false, new string[] { "You can't use this command. Not enough players!" });
             else if (EventManager.ActiveEvent != null) return (false, new string[] { "You can't forcestack events" });
@@ -45,6 +46,7 @@ namespace Mistaken.EventManager
                 if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
                 {
                     item.Value.Initiate();
+                    new AdminInvokingEventEventArgs(sender, item.Value);
 
                     return (true, new string[] { $"<color=green>Activated</color> {item.Value.Name}", item.Value.Description });
                 }
@@ -53,7 +55,7 @@ namespace Mistaken.EventManager
             return (false, new string[] { "Event not found" });
         }
 
-        public static (bool, string[]) ListCommand(string[] args)
+        public static (bool, string[]) ListCommand(string[] args, Player sender)
         {
             List<string> tor = new List<string>
             {
@@ -66,7 +68,7 @@ namespace Mistaken.EventManager
             return (true, tor.ToArray());
         }
 
-        public static (bool, string[]) QueueCommand(string[] args)
+        public static (bool, string[]) QueueCommand(string[] args, Player sender)
         {
             if (args.Length == 0)
             {
@@ -96,7 +98,7 @@ namespace Mistaken.EventManager
             }
         }
 
-        public static (bool, string[]) ClearWinnersFile(string[] args)
+        public static (bool, string[]) ClearWinnersFile(string[] args, Player sender)
         {
             File.WriteAllText(EventManager.BasePath + @"\winners.txt", string.Empty);
 
@@ -126,10 +128,11 @@ namespace Mistaken.EventManager
                 return new string[] { this.GetUsage() };
             }
 
+            var admin = Player.Get(sender);
             string cmd = args[0].ToLower();
             if (this.subcommands.TryGetValue(cmd, out var commandHandler))
             {
-                var retuned = commandHandler.Invoke(args.Skip(1).ToArray());
+                var retuned = commandHandler.Invoke((args.Skip(1).ToArray(), admin));
                 success = retuned.isSuccess;
                 return retuned.message;
             }
@@ -139,19 +142,19 @@ namespace Mistaken.EventManager
             }
         }
 
-        private readonly Dictionary<string, Func<string[], (bool isSuccess, string[] message)>> subcommands = new Dictionary<string, Func<string[], (bool, string[])>>()
+        private readonly Dictionary<string, Func<(string[], Player), (bool isSuccess, string[] message)>> subcommands = new Dictionary<string, Func<(string[], Player), (bool, string[])>>()
         {
-            { "q", (args) => QueueCommand(args) },
-            { "queue", (args) => QueueCommand(args) },
+            { "q", (args) => QueueCommand(args.Item1, args.Item2) },
+            { "queue", (args) => QueueCommand(args.Item1, args.Item2) },
             { "g", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
             { "get", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
-            { "l", (args) => ListCommand(args) },
-            { "list", (args) => ListCommand(args) },
-            { "f", (args) => ForceCommand(args) },
-            { "force", (args) => ForceCommand(args) },
-            { "forceend", (args) => ForceEndCommand(args) },
-            { "clearwinners", (args) => ClearWinnersFile(args) },
-            { "clw", (args) => ClearWinnersFile(args) },
+            { "l", (args) => ListCommand(args.Item1, args.Item2) },
+            { "list", (args) => ListCommand(args.Item1, args.Item2) },
+            { "f", (args) => ForceCommand(args.Item1, args.Item2) },
+            { "force", (args) => ForceCommand(args.Item1, args.Item2) },
+            { "forceend", (args) => ForceEndCommand(args.Item1, args.Item2) },
+            { "clearwinners", (args) => ClearWinnersFile(args.Item1, args.Item2) },
+            { "clw", (args) => ClearWinnersFile(args.Item1, args.Item2) },
 
             // {"rwe", (ply,args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.rounds_without_event }); } },
             // {"setrwevent", (ply, args) => SetRWEventCommand(ply,args) },
