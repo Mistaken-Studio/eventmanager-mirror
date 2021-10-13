@@ -175,7 +175,7 @@ namespace Mistaken.EventManager
             if (players.Count == 1 && ActiveEvent is IWinOnLastAlive)
                 ActiveEvent.OnEnd(players[0]);
             else if (players.Count == 0 && ActiveEvent is IEndOnNoAlive)
-                ActiveEvent.OnEnd(null);
+                ActiveEvent.OnEnd(player: null);
             if (ActiveEvent is IAnnouncePlayersAlive && players.Count > 1)
             {
                 Map.ClearBroadcasts();

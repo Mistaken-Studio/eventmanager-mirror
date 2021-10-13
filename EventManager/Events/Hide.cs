@@ -128,11 +128,11 @@ namespace Mistaken.EventManager.Events
                 }
 
                 if (winners.Count > 1)
-                    this.OnEnd(null, $"<color=orange>Klasa D</color> wygrywa! ({winners.Count} <color=orange>Klas D</color> uciekło)");
+                    this.OnEnd($"<color=orange>Klasa D</color> wygrywa! ({winners.Count} <color=orange>Klas D</color> uciekło)");
                 else if (winners.Count != 0)
-                    this.OnEnd(null, $"<color=orange>Klasa D</color> wygrywa! ({winners[0].Nickname} uciekł)");
+                    this.OnEnd($"<color=orange>Klasa D</color> wygrywa! ({winners[0].Nickname} uciekł)");
                 else if (!RealPlayers.Any(Team.CDP))
-                    this.OnEnd(null, "<color=red>SCP</color> wygrywa!");
+                    this.OnEnd("<color=red>SCP</color> wygrywa!");
             }
         }
     }
