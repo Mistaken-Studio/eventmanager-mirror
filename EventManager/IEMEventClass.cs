@@ -4,17 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
-using MEC;
 using Mistaken.API;
+using Mistaken.EventManager.EventArgs;
 using UnityEngine;
 
 namespace Mistaken.EventManager.EventCreator
@@ -61,6 +57,7 @@ namespace Mistaken.EventManager.EventCreator
             else
             {
                 Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
+                new PlayerWinningEventEventArgs(player, this);
                 if (!player.RemoteAdminAccess)
                 {
                     var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
