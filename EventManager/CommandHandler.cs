@@ -29,7 +29,7 @@ namespace Mistaken.EventManager
         public static (bool, string[]) ForceEndCommand(string[] args)
         {
             if (EventManager.ActiveEvent == null) return (false, new string[] { "No event is on going" });
-            EventManager.ActiveEvent.OnEnd(null, $"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
+            EventManager.ActiveEvent.OnEnd($"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
             EventManager.ActiveEvent = null;
             return (true, new string[] { "Done" });
         }

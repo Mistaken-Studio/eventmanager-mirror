@@ -52,14 +52,13 @@ namespace Mistaken.EventManager.EventCreator
         /// <summary>
         /// Ends Event.
         /// </summary>
-        /// <param name="player">winner of the Event.</param>
-        /// <param name="customWinText">if <paramref name="player"/> is not only a nickname.</param>
-        public void OnEnd(Player player, string customWinText = null)
+        /// <param name="player">Winner of the Event.</param>
+        public void OnEnd(Player player = null)
         {
             Map.ClearBroadcasts();
             if (player == null)
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
-            else if (string.IsNullOrEmpty(customWinText))
+            else
             {
                 Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
                 if (!player.RemoteAdminAccess)
@@ -68,8 +67,22 @@ namespace Mistaken.EventManager.EventCreator
                     File.AppendAllLines(EventManager.BasePath + @"\winners.txt", new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2] + 1) : 1)}" });
                 }
             }
-            else
+
+            this.DeInitiate();
+            Round.IsLocked = false;
+        }
+
+        /// <summary>
+        /// Ends Event.
+        /// </summary>
+        /// <param name="customWinText">Custom text displayed at the end of the Event.</param>
+        public void OnEnd(string customWinText = null)
+        {
+            Map.ClearBroadcasts();
+            if (!string.IsNullOrEmpty(customWinText))
                 Map.Broadcast(10, $"{EventManager.EMLB} {customWinText}");
+            else
+                Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
             this.DeInitiate();
             Round.IsLocked = false;
         }
