@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    /*internal class CTF : IEMEventClass
+    internal class CTF : IEMEventClass
     {
         public override string Id => "ctf";
 
@@ -60,6 +60,10 @@ namespace Mistaken.EventManager.Events
 
         private Room mtfRoom = null;
 
+        private Exiled.API.Features.Items.Flashlight flagCI = null;
+
+        private Exiled.API.Features.Items.Flashlight flagMTF = null;
+
         private void Server_RoundStarted()
         {
             this.tickets["MTF"] = 0;
@@ -86,8 +90,12 @@ namespace Mistaken.EventManager.Events
 
             if (this.ciRoom == null) this.ciRoom = rooms.First(r => Vector3.Distance(r.Position, this.mtfRoom.Position) >= 70 && r.Zone == ZoneType.HeavyContainment);
 
-            ItemType.Flashlight.Spawn(1, this.mtfRoom.Position);
-            ItemType.Flashlight.Spawn(2, this.ciRoom.Position);
+            this.flagCI = new Exiled.API.Features.Items.Flashlight(ItemType.Flashlight);
+            this.flagCI.Spawn(this.ciRoom.Position + (Vector3.up * 2));
+
+            this.flagMTF = new Exiled.API.Features.Items.Flashlight(ItemType.Flashlight);
+            this.flagMTF.Spawn(this.mtfRoom.Position + (Vector3.up * 2));
+
             foreach (var player in RealPlayers.RandomList)
             {
                 player.SessionVariables["NO_SPAWN_PROTECT"] = true;
@@ -138,44 +146,43 @@ namespace Mistaken.EventManager.Events
 
         private void Player_PickingUpItem(Exiled.Events.EventArgs.PickingUpItemEventArgs ev)
         {
-            if (ev.Pickup.ItemId == ItemType.Flashlight && ev.Pickup.durability == 1 && player.Role == RoleType.NtfLieutenant) { ev.IsAllowed = false; return; }
-            else if (ev.Pickup.ItemId == ItemType.Flashlight && ev.Pickup.durability == 2 && player.Role == RoleType.ChaosInsurgency) { ev.IsAllowed = false; return; }
-            if (ev.Pickup.ItemId == ItemType.Flashlight && ev.Pickup.durability == 1) Map.Broadcast(5, Translations["FlagMTF"].Replace("$player", player.Nickname));
-            else if (ev.Pickup.ItemId == ItemType.Flashlight && ev.Pickup.durability == 2) Map.Broadcast(5, Translations["FlagCI"].Replace("$player", player.Nickname)); ;
-            if (ev.Pickup.Type != ItemType.Flashlight)
-                return;
-            switch (ev.Pickup.durability)
+            if (ev.Pickup.Type == ItemType.Flashlight)
             {
-                case 1:
-                    if (ev.Player.Role == RoleType.NtfSergeant)
-                    {
-                        ev.IsAllowed = false;
-                        return;
-                    }
+                switch (ev.Pickup.Serial)
+                {
+                    case 1:
+                        if (ev.Player.Role == RoleType.NtfSergeant)
+                        {
+                            ev.IsAllowed = false;
+                            return;
+                        }
 
-                    Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
-                    break;
-                case 2:
-                    if (ev.Player.Role == RoleType.ChaosRifleman)
-                    {
-                        ev.IsAllowed = false;
-                        return;
-                    }
+                        Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
+                        break;
+                    case 2:
+                        if (ev.Player.Role == RoleType.ChaosRifleman)
+                        {
+                            ev.IsAllowed = false;
+                            return;
+                        }
 
-                    Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
-                    break;
+                        Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
+                        break;
+                }
             }
+            else
+                return;
         }
 
         private void Player_DroppingItem(Exiled.Events.EventArgs.DroppingItemEventArgs ev)
         {
-            if (ev.Item.Type == ItemType.Flashlight && ev.Item.durability == 1)
+            if (ev.Item.Type == ItemType.Flashlight && ev.Item.Serial == this.flagMTF.Serial)
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
                 if (ev.Player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!", true);
             }
-            else if (ev.Item.Type == ItemType.Flashlight && ev.Item.durability == 2)
+            else if (ev.Item.Type == ItemType.Flashlight && ev.Item.Serial == this.flagCI.Serial)
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
@@ -194,23 +201,22 @@ namespace Mistaken.EventManager.Events
                     {
                         if (item.Type == ItemType.Flashlight)
                         {
-                            switch (item.durability)
+                            if (item.Serial == this.flagMTF.Serial)
                             {
-                                case 1:
-                                    Map.ClearBroadcasts();
-                                    Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", player.Nickname));
-                                    if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!", true);
-                                    break;
-                                case 2:
-                                    Map.ClearBroadcasts();
-                                    Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", player.Nickname));
-                                    if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
-                                    break;
+                                Map.ClearBroadcasts();
+                                Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", player.Nickname));
+                                if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!", true);
+                            }
+                            else if (item.Serial == this.flagCI.Serial)
+                            {
+                                Map.ClearBroadcasts();
+                                Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", player.Nickname));
+                                if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
                             }
                         }
                     }
                 }
             }
         }
-    }*/
+    }
 }
