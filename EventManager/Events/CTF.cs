@@ -126,9 +126,9 @@ namespace Mistaken.EventManager.Events
                 else
                     this.tickets["CI"] += 1;
                 if (this.tickets["MTF"] >= 35)
-                    this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
+                    this.OnEnd("<color=blue>MFO</color> wygrywa!");
                 else if (this.tickets["CI"] >= 35)
-                    this.OnEnd("<color=green>CI</color> wygrywa!", true);
+                    this.OnEnd("<color=green>CI</color> wygrywa!");
 
                 ev.Target.Broadcast(5, "Za chwilę się odrodzisz!");
                 MEC.Timing.CallDelayed(5f, () =>
@@ -180,13 +180,13 @@ namespace Mistaken.EventManager.Events
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
-                if (ev.Player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!", true);
+                if (ev.Player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!");
             }
             else if (ev.Item.Type == ItemType.Flashlight && ev.Item.Serial == this.flagCI.Serial)
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
-                if (ev.Player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
+                if (ev.Player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!");
             }
         }
 
@@ -205,13 +205,13 @@ namespace Mistaken.EventManager.Events
                             {
                                 Map.ClearBroadcasts();
                                 Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", player.Nickname));
-                                if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!", true);
+                                if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!");
                             }
                             else if (item.Serial == this.flagCI.Serial)
                             {
                                 Map.ClearBroadcasts();
                                 Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", player.Nickname));
-                                if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!", true);
+                                if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!");
                             }
                         }
                     }
