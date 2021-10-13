@@ -141,31 +141,25 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.IsAllowed)
-            {
-                if (ev.NewRole == RoleType.FacilityGuard)
-                    Timing.CallDelayed(0.1f, () => ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1);
-            }
+            if (ev.NewRole == RoleType.FacilityGuard)
+                Timing.CallDelayed(0.1f, () => ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1);
         }
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
-            if (ev.IsAllowed)
+            if (ev.Attacker.Role == RoleType.Scp0492)
             {
-                if (ev.Attacker.Role == RoleType.Scp0492)
-                {
-                    ev.Amount = 1;
-                    this.infected[ev.Target] = true;
-                }
+                ev.Amount = 1;
+                this.infected[ev.Target] = true;
             }
         }
 
         private void Player_Dying(Exiled.Events.EventArgs.DyingEventArgs ev)
         {
-            if (ev.IsAllowed)
+            if (this.infected[ev.Target])
             {
-                if (this.infected[ev.Target])
-                    Timing.CallDelayed(0.1f, () => ev.Target.Role = RoleType.Scp0492);
+                Timing.CallDelayed(0.1f, () => ev.Target.Role = RoleType.Scp0492);
+                this.infected[ev.Target] = false;
             }
         }
 

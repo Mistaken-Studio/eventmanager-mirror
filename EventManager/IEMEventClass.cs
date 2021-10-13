@@ -54,15 +54,22 @@ namespace Mistaken.EventManager.EventCreator
         /// </summary>
         /// <param name="player">winner of the Event.</param>
         /// <param name="customWinText">if <paramref name="player"/> is not only a nickname.</param>
-        public void OnEnd(string player = null, bool customWinText = false)
+        public void OnEnd(Player player, string customWinText = null)
         {
             Map.ClearBroadcasts();
             if (player == null)
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
-            else if (!customWinText)
-                Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player}</color> wygrał!");
+            else if (string.IsNullOrEmpty(customWinText))
+            {
+                Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
+                if (!player.RemoteAdminAccess)
+                {
+                    var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
+                    File.AppendAllLines(EventManager.BasePath + @"\winners.txt", new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2] + 1) : 1)}" });
+                }
+            }
             else
-                Map.Broadcast(10, $"{EventManager.EMLB} {player}");
+                Map.Broadcast(10, $"{EventManager.EMLB} {customWinText}");
             this.DeInitiate();
             Round.IsLocked = false;
         }
@@ -75,7 +82,7 @@ namespace Mistaken.EventManager.EventCreator
         {
             var players = RealPlayers.List.Where(x => x.Role == role).ToArray();
             if (players.Length == 1)
-                this.OnEnd(players[0].Nickname);
+                this.OnEnd(players[0]);
         }
 
         /// <summary>
@@ -83,9 +90,9 @@ namespace Mistaken.EventManager.EventCreator
         /// </summary>
         public void Initiate()
         {
-            Log.Debug("Deinitiating modules");
+            Log.Debug("Deinitiating modules", PluginHandler.Instance.Config.VerbouseOutput);
             Mistaken.API.Diagnostics.Module.DisableAllExcept(PluginHandler.Instance);
-            Log.Debug("Deinitiated modules");
+            Log.Debug("Deinitiated modules", PluginHandler.Instance.Config.VerbouseOutput);
             EventManager.ActiveEvent = this;
             Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color=#6B9ADF>{this.Name}</color>");
             CharacterClassManager.LaterJoinEnabled = false;
@@ -178,10 +185,10 @@ namespace Mistaken.EventManager.EventCreator
         public void DeInitiate()
         {
             this.OnDeIni();
-            Log.Debug("Event Deactivated");
-            Log.Debug("Reinitiating modules");
+            Log.Debug("Event Deactivated", PluginHandler.Instance.Config.VerbouseOutput);
+            Log.Debug("Reinitiating modules", PluginHandler.Instance.Config.VerbouseOutput);
             Mistaken.API.Diagnostics.Module.EnableAllExcept(PluginHandler.Instance);
-            Log.Debug("Reinitiated modules");
+            Log.Debug("Modules reinitiated", PluginHandler.Instance.Config.VerbouseOutput);
             EventManager.ActiveEvent = null;
         }
 

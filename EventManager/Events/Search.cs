@@ -144,7 +144,7 @@ namespace Mistaken.EventManager.Events
 
             Log.Debug(ev.Player.Items.Any(i => i.Type == ItemType.MicroHID).ToString());
             if (ev.Player.Items.Any(i => i.Type == ItemType.MicroHID))
-                this.OnEnd(ev.Player.Nickname);
+                this.OnEnd(ev.Player);
             else
                 ev.IsAllowed = false;
         }
