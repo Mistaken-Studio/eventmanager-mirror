@@ -27,11 +27,11 @@ namespace Mistaken.EventManager
 
         private static IEnumerator<float> SlowFC(Player player, RoleType role, Vector3 pos = default)
         {
-            yield return Timing.WaitForSeconds(1);
+            yield return Timing.WaitForSeconds(0.5f);
             player.Role = role;
             if (pos != default)
             {
-                yield return Timing.WaitForSeconds(1);
+                yield return Timing.WaitForSeconds(0.2f);
                 player.Position = pos;
             }
         }
