@@ -20,7 +20,7 @@ namespace Mistaken.EventManager
         public static event CustomEventHandler<AdminInvokingEventEventArgs> AdminInvokingEvent;
 
         /// <summary>
-        /// Called when player wins  Event.
+        /// Called when player wins Event.
         /// </summary>
         public static event CustomEventHandler<PlayerWinningEventEventArgs> PlayerWinningEvent;
     }
