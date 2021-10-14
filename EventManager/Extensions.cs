@@ -31,7 +31,7 @@ namespace Mistaken.EventManager
             player.Role = role;
             if (pos != default)
             {
-                yield return Timing.WaitForSeconds(0.2f);
+                yield return Timing.WaitForSeconds(0.5f);
                 player.Position = pos;
             }
         }
