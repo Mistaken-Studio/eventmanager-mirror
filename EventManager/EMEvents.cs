@@ -14,6 +14,7 @@ namespace Mistaken.EventManager
     /// </summary>
     public static class EMEvents
     {
+#pragma warning disable CS0067
         /// <summary>
         /// Called when Event is invoked.
         /// </summary>
@@ -23,5 +24,6 @@ namespace Mistaken.EventManager
         /// Called when player wins Event.
         /// </summary>
         public static event CustomEventHandler<PlayerWinningEventEventArgs> PlayerWinningEvent;
+#pragma warning restore CS0067
     }
 }
