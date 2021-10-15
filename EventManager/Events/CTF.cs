@@ -101,12 +101,12 @@ namespace Mistaken.EventManager.Events
                 player.SessionVariables["NO_SPAWN_PROTECT"] = true;
                 if (i % 2 != 0)
                 {
-                    player.SlowChangeRole(RoleType.NtfSergeant, this.mtfRoom.Position + (Vector3.up * 2));
+                    player.SlowChangeRole(this.RandomTeamRole(Team.MTF), this.mtfRoom.Position + (Vector3.up * 2));
                     player.Broadcast(10, this.Translations["TaskMTF"]);
                 }
                 else
                 {
-                    player.SlowChangeRole(RoleType.ChaosRifleman, this.ciRoom.Position + (Vector3.up * 2));
+                    player.SlowChangeRole(this.RandomTeamRole(Team.CHI), this.ciRoom.Position + (Vector3.up * 2));
                     player.Broadcast(10, this.Translations["TaskCI"]);
                 }
 
@@ -120,8 +120,8 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.IsAllowed)
             {
-                var role = ev.Target.Role;
-                if (role == RoleType.ChaosRifleman)
+                var team = ev.Target.Team;
+                if (team == Team.CHI)
                     this.tickets["MTF"] += 1;
                 else
                     this.tickets["CI"] += 1;
@@ -133,14 +133,14 @@ namespace Mistaken.EventManager.Events
                 ev.Target.Broadcast(5, "Za chwilę się odrodzisz!");
                 MEC.Timing.CallDelayed(5f, () =>
                 {
-                    ev.Target.SlowChangeRole(role, (role == RoleType.ChaosRifleman ? this.ciRoom.Position : this.mtfRoom.Position) + Vector3.up);
+                    ev.Target.SlowChangeRole(this.RandomTeamRole(team), (team == Team.CHI ? this.ciRoom.Position : this.mtfRoom.Position) + Vector3.up);
                 });
             }
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.Player.Role == RoleType.NtfSergeant)
+            if (ev.Player.Team == Team.MTF && ev.Player.Role != RoleType.NtfPrivate)
                 MEC.Timing.CallDelayed(1f, () => ev.Player.RemoveItem(ev.Player.Items.First(x => x.Type == ItemType.GrenadeHE)));
         }
 
@@ -151,7 +151,7 @@ namespace Mistaken.EventManager.Events
                 switch (ev.Pickup.Serial)
                 {
                     case 1:
-                        if (ev.Player.Role == RoleType.NtfSergeant)
+                        if (ev.Player.Team == Team.MTF)
                         {
                             ev.IsAllowed = false;
                             return;
@@ -160,7 +160,7 @@ namespace Mistaken.EventManager.Events
                         Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
                         break;
                     case 2:
-                        if (ev.Player.Role == RoleType.ChaosRifleman)
+                        if (ev.Player.Team == Team.CHI)
                         {
                             ev.IsAllowed = false;
                             return;
@@ -176,13 +176,13 @@ namespace Mistaken.EventManager.Events
 
         private void Player_DroppingItem(Exiled.Events.EventArgs.DroppingItemEventArgs ev)
         {
-            if (ev.Item.Type == ItemType.Flashlight && ev.Item.Serial == this.flagMTF.Serial)
+            if (ev.Item.Serial == this.flagMTF.Serial)
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
                 if (ev.Player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!");
             }
-            else if (ev.Item.Type == ItemType.Flashlight && ev.Item.Serial == this.flagCI.Serial)
+            else if (ev.Item.Serial == this.flagCI.Serial)
             {
                 Map.ClearBroadcasts();
                 Map.Broadcast(4, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
@@ -199,20 +199,17 @@ namespace Mistaken.EventManager.Events
                 {
                     foreach (var item in player.Items)
                     {
-                        if (item.Type == ItemType.Flashlight)
+                        if (item.Serial == this.flagMTF.Serial)
                         {
-                            if (item.Serial == this.flagMTF.Serial)
-                            {
-                                Map.ClearBroadcasts();
-                                Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", player.Nickname));
-                                if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!");
-                            }
-                            else if (item.Serial == this.flagCI.Serial)
-                            {
-                                Map.ClearBroadcasts();
-                                Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", player.Nickname));
-                                if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!");
-                            }
+                            Map.ClearBroadcasts();
+                            Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", player.Nickname));
+                            if (player.CurrentRoom == this.ciRoom) this.OnEnd("<color=green>CI</color> wygrywa!");
+                        }
+                        else if (item.Serial == this.flagCI.Serial)
+                        {
+                            Map.ClearBroadcasts();
+                            Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", player.Nickname));
+                            if (player.CurrentRoom == this.mtfRoom) this.OnEnd("<color=blue>MFO</color> wygrywa!");
                         }
                     }
                 }
