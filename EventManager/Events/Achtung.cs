@@ -9,6 +9,7 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using Mistaken.API;
+using Mistaken.API.Extensions;
 using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
@@ -82,10 +83,7 @@ namespace Mistaken.EventManager.Events
             for (; count > 0; count--)
             {
                 var grenade = new Throwable(ItemType.GrenadeHE, player);
-                grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
-                grenade.Base.ThrowSettings.RandomTorqueB = Vector3.zero;
-                grenade.Base.ServerThrow(0, -1, Vector3.zero);
-                count--;
+                grenade.Throw(player.Position, Vector3.zero);
             }
         }
     }
