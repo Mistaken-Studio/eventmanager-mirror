@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Exiled.Events.Extensions;
 using Mistaken.EventManager.EventArgs;
 using static Exiled.Events.Events;
 
@@ -16,14 +17,26 @@ namespace Mistaken.EventManager
     {
 #pragma warning disable CS0067
         /// <summary>
-        /// Called when Event is invoked.
+        /// Invoked when Event is invoked.
         /// </summary>
         public static event CustomEventHandler<AdminInvokingEventEventArgs> AdminInvokingEvent;
 
         /// <summary>
-        /// Called when player wins Event.
+        /// Invoked when player wins Event.
         /// </summary>
         public static event CustomEventHandler<PlayerWinningEventEventArgs> PlayerWinningEvent;
+
+        /// <summary>
+        /// Called when Event is invoked.
+        /// </summary>
+        /// <param name="ev">The <see cref="AdminInvokingEventEventArgs"/> instance.</param>
+        public static void OnAdminInvokingEvent(AdminInvokingEventEventArgs ev) => AdminInvokingEvent.InvokeSafely(ev);
+
+        /// <summary>
+        /// Called when player wins Event.
+        /// </summary>
+        /// <param name="ev">The <see cref="PlayerWinningEventEventArgs"/> instance.</param>
+        public static void OnPlayerWinningEvent(PlayerWinningEventEventArgs ev) => PlayerWinningEvent.InvokeSafely(ev);
 #pragma warning restore CS0067
     }
 }
