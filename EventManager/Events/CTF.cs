@@ -146,31 +146,26 @@ namespace Mistaken.EventManager.Events
 
         private void Player_PickingUpItem(Exiled.Events.EventArgs.PickingUpItemEventArgs ev)
         {
-            if (ev.Pickup.Type == ItemType.Flashlight)
+            if (ev.Pickup.Serial == this.flagMTF.Serial)
             {
-                if (ev.Pickup.Serial == flagMTF.Serial)
+                if (ev.Player.Team == Team.MTF)
                 {
-                    if (ev.Player.Team == Team.MTF)
-                    {
-                        ev.IsAllowed = false;
-                        return;
-                    }
-
-                    Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
+                    ev.IsAllowed = false;
+                    return;
                 }
-                else if (ev.Pickup.Serial == flagCI.Serial)
-                {
-                    if (ev.Player.Team == Team.CHI)
-                    {
-                        ev.IsAllowed = false;
-                        return;
-                    }
 
-                    Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
-                }
+                Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
             }
-            else
-                return;
+            else if (ev.Pickup.Serial == this.flagCI.Serial)
+            {
+                if (ev.Player.Team == Team.CHI)
+                {
+                    ev.IsAllowed = false;
+                    return;
+                }
+
+                Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
+            }
         }
 
         private void Player_DroppingItem(Exiled.Events.EventArgs.DroppingItemEventArgs ev)
