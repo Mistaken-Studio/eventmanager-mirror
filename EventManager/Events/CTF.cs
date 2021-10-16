@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="CTF.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
@@ -148,26 +148,25 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.Pickup.Type == ItemType.Flashlight)
             {
-                switch (ev.Pickup.Serial)
+                if (ev.Pickup.Serial == flagMTF.Serial)
                 {
-                    case 1:
-                        if (ev.Player.Team == Team.MTF)
-                        {
-                            ev.IsAllowed = false;
-                            return;
-                        }
+                    if (ev.Player.Team == Team.MTF)
+                    {
+                        ev.IsAllowed = false;
+                        return;
+                    }
 
-                        Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
-                        break;
-                    case 2:
-                        if (ev.Player.Team == Team.CHI)
-                        {
-                            ev.IsAllowed = false;
-                            return;
-                        }
+                    Map.Broadcast(5, this.Translations["FlagMTF"].Replace("$player", ev.Player.Nickname));
+                }
+                else if (ev.Pickup.Serial == flagCI.Serial)
+                {
+                    if (ev.Player.Team == Team.CHI)
+                    {
+                        ev.IsAllowed = false;
+                        return;
+                    }
 
-                        Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
-                        break;
+                    Map.Broadcast(5, this.Translations["FlagCI"].Replace("$player", ev.Player.Nickname));
                 }
             }
             else
