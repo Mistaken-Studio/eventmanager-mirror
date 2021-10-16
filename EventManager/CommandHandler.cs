@@ -46,7 +46,7 @@ namespace Mistaken.EventManager
                 if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
                 {
                     item.Value.Initiate();
-                    new AdminInvokingEventEventArgs(sender, item.Value);
+                    EMEvents.OnAdminInvokingEvent(new AdminInvokingEventEventArgs(sender, item.Value));
 
                     return (true, new string[] { $"<color=green>Activated</color> {item.Value.Name}", item.Value.Description });
                 }

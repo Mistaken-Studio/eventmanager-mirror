@@ -57,7 +57,7 @@ namespace Mistaken.EventManager.EventCreator
             else
             {
                 Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
-                new PlayerWinningEventEventArgs(player, this);
+                EMEvents.OnPlayerWinningEvent(new PlayerWinningEventEventArgs(player, this));
                 if (!player.RemoteAdminAccess)
                 {
                     var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
