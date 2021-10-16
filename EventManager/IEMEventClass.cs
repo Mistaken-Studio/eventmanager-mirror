@@ -96,6 +96,47 @@ namespace Mistaken.EventManager.EventCreator
         }
 
         /// <summary>
+        /// Gets a random role from the specified team (team must be any of <see cref="Team.MTF"/> or <see cref="Team.CHI"/>).
+        /// </summary>
+        /// <param name="team">Team.</param>
+        /// <returns>Random role from the specified team.</returns>
+        public RoleType RandomTeamRole(Team team)
+        {
+            var rand = UnityEngine.Random.Range(0, 3);
+            switch (team)
+            {
+                case Team.CHI:
+                    {
+                        switch (rand)
+                        {
+                            case 1:
+                                return RoleType.ChaosRepressor;
+                            case 2:
+                                return RoleType.ChaosMarauder;
+                            default:
+                                return RoleType.ChaosRifleman;
+                        }
+                    }
+
+                case Team.MTF:
+                    {
+                        switch (rand)
+                        {
+                            case 1:
+                                return RoleType.NtfSergeant;
+                            case 2:
+                                return RoleType.NtfCaptain;
+                            default:
+                                return RoleType.NtfPrivate;
+                        }
+                    }
+
+                default:
+                    return RoleType.ClassD;
+            }
+        }
+
+        /// <summary>
         /// Initiates Event.
         /// </summary>
         public void Initiate()

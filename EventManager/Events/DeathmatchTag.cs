@@ -85,13 +85,13 @@ namespace Mistaken.EventManager.Events
                     switch (UnityEngine.Random.Range(0, 3))
                     {
                         case 0:
-                            player.SlowChangeRole(RoleType.NtfSergeant, RoleType.Scp93953.GetRandomSpawnProperties().Item1);
+                            player.SlowChangeRole(this.RandomTeamRole(Team.MTF), RoleType.Scp93953.GetRandomSpawnProperties().Item1);
                             break;
                         case 1:
-                            player.SlowChangeRole(RoleType.NtfSergeant, RoleType.Scp096.GetRandomSpawnProperties().Item1);
+                            player.SlowChangeRole(this.RandomTeamRole(Team.MTF), RoleType.Scp096.GetRandomSpawnProperties().Item1);
                             break;
                         case 2:
-                            player.SlowChangeRole(RoleType.NtfSergeant, Map.Doors.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2));
+                            player.SlowChangeRole(this.RandomTeamRole(Team.MTF), Map.Doors.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2));
                             break;
                     }
 
@@ -99,7 +99,7 @@ namespace Mistaken.EventManager.Events
                 }
                 else
                 {
-                    player.SlowChangeRole(RoleType.ChaosRifleman, RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
+                    player.SlowChangeRole(this.RandomTeamRole(Team.CHI), RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
                     player.Broadcast(10, EventManager.EMLB + this.Translations["CI"]);
                 }
 
@@ -111,8 +111,8 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.IsAllowed)
             {
-                var role = ev.Target.Role;
-                if (role == RoleType.ChaosRifleman)
+                var team = ev.Target.Team;
+                if (team == Team.CHI)
                     this.tickets["MTF"] += 1;
                 else
                     this.tickets["CI"] += 1;
@@ -125,7 +125,7 @@ namespace Mistaken.EventManager.Events
                 MEC.Timing.CallDelayed(5f, () =>
                 {
                     Vector3 respPoint;
-                    if (role == RoleType.NtfSergeant)
+                    if (team == Team.MTF)
                         respPoint = RoleType.FacilityGuard.GetRandomSpawnProperties().Item1;
                     else
                     {
@@ -143,14 +143,14 @@ namespace Mistaken.EventManager.Events
                         }
                     }
 
-                    ev.Target.SlowChangeRole(role == RoleType.ChaosRifleman ? RoleType.NtfSergeant : RoleType.ChaosRifleman, respPoint);
+                    ev.Target.SlowChangeRole(team == Team.CHI ? this.RandomTeamRole(Team.MTF) : this.RandomTeamRole(Team.CHI), respPoint);
                 });
             }
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.Player.Role == RoleType.NtfSergeant)
+            if (ev.Player.Team == Team.MTF && ev.Player.Role != RoleType.NtfPrivate)
                 MEC.Timing.CallDelayed(1f, () => ev.Player.RemoveItem(ev.Player.Items.First(x => x.Type == ItemType.GrenadeHE)));
         }
     }
