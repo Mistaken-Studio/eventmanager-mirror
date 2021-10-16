@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="CTF.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
@@ -150,7 +150,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (ev.Pickup.Serial == flagMTF.Serial)
                 {
-                    if (ev.Player.Role == RoleType.NtfSergeant)
+                    if (ev.Player.Team == Team.MTF)
                     {
                         ev.IsAllowed = false;
                         return;
@@ -160,7 +160,7 @@ namespace Mistaken.EventManager.Events
                 }
                 else if (ev.Pickup.Serial == flagCI.Serial)
                 {
-                    if (ev.Player.Role == RoleType.ChaosRifleman)
+                    if (ev.Player.Team == Team.CHI)
                     {
                         ev.IsAllowed = false;
                         return;
