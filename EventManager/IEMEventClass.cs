@@ -159,6 +159,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 0:
                             {
                                 new Firearm(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 24;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -168,6 +169,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 1:
                             {
                                 new Firearm(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 36;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -177,6 +179,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 2:
                             {
                                 new Firearm(ItemType.GunRevolver).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 16;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -186,6 +189,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 3:
                             {
                                 new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 60;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -195,6 +199,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 4:
                             {
                                 new Firearm(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 100;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -204,6 +209,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 5:
                             {
                                 new Firearm(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 80;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -213,6 +219,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 6:
                             {
                                 new Firearm(ItemType.GunAK).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 70;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -222,6 +229,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 7:
                             {
                                 new Firearm(ItemType.GunShotgun).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 28;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
@@ -231,6 +239,7 @@ namespace Mistaken.EventManager.EventCreator
                         case 8:
                             {
                                 new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
                                 var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
                                 ((AmmoPickup)ammo.Base).SavedAmmo = 200;
                                 ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
