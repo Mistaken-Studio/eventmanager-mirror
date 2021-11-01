@@ -137,7 +137,7 @@ namespace Mistaken.EventManager
             else
             {
                 this.Log.Debug(EventQueue.Count, PluginHandler.Instance.Config.VerbouseOutput);
-                this.Log.Debug(EventActive().ToString(), PluginHandler.Instance.Config.VerbouseOutput);
+                this.Log.Debug(EventActive(), PluginHandler.Instance.Config.VerbouseOutput);
             }
         }
 
