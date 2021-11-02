@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
+using InventorySystem.Items.Firearms.Ammo;
 using Mistaken.API;
 using Mistaken.EventManager.EventArgs;
 using UnityEngine;
@@ -152,79 +153,130 @@ namespace Mistaken.EventManager.EventCreator
             {
                 foreach (var item in Map.Rooms)
                 {
-                    int rand = UnityEngine.Random.Range(0, 10);
+                    int rand = UnityEngine.Random.Range(0, 14);
                     switch (rand)
                     {
                         case 0:
-                            new Item(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
-                            var ammo = new InventorySystem.Items.Firearms.Ammo.AmmoPickup();
-                            ammo.Info.ItemId = ItemType.Ammo9x19;
-                            ammo.NetworkSavedAmmo = 200;
-                            ammo.Info.Position = item.Position + Vector3.up;
+                            {
+                                new Firearm(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 24;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
 
-                            // UnityEngine.GameObject.Instantiate(ammo, item.Position, Quaternion.identity);
-                            break;
                         case 1:
-                            new Item(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            break;
+                            {
+                                new Firearm(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 36;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
+
                         case 2:
-                            new Item(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            break;
+                            {
+                                new Firearm(ItemType.GunRevolver).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 16;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
+
                         case 3:
-                            new Item(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                            break;
+                            {
+                                new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 60;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
+
                         case 4:
-                            new Item(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                            break;
+                            {
+                                new Firearm(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 100;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
+
                         case 5:
-                            new Item(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                            break;
+                            {
+                                new Firearm(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 80;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
+
                         case 6:
+                            {
+                                new Firearm(ItemType.GunAK).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 70;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
 
-                            // ItemType.WeaponManagerTablet.Spawn(float.MaxValue, item.Position + Vector3.up, Quaternion.identity);
-                            break;
                         case 7:
+                            {
+                                new Firearm(ItemType.GunShotgun).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 28;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
 
-                            // ItemType.Medkit.Spawn(2, item.Position + Vector3.up, Quaternion.identity);
-                            break;
                         case 8:
+                            {
+                                new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
+                                new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
+                                var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
+                                ((AmmoPickup)ammo.Base).SavedAmmo = 200;
+                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                break;
+                            }
 
-                            // ItemType.Adrenaline.Spawn(1, item.Position + Vector3.up, Quaternion.identity);
-                            break;
                         case 9:
+                            {
+                                new Item(ItemType.Medkit).Spawn(item.Position + Vector3.up);
+                                new Item(ItemType.Painkillers).Spawn(item.Position + Vector3.up);
+                                break;
+                            }
 
-                            // ItemType.Painkillers.Spawn(5, item.Position + Vector3.up, Quaternion.identity);
-                            break;
+                        case 10:
+                            {
+                                new Item(ItemType.SCP500).Spawn(item.Position + Vector3.up);
+                                break;
+                            }
+
+                        case 11:
+                            {
+                                new Item(ItemType.SCP207).Spawn(item.Position + Vector3.up);
+                                break;
+                            }
+
+                        case 12:
+                            {
+                                new Throwable(ItemType.GrenadeFlash).Spawn(item.Position + Vector3.up);
+                                new Throwable(ItemType.GrenadeHE).Spawn(item.Position + Vector3.up);
+                                break;
+                            }
+
+                        case 13:
+                            {
+                                new Throwable(ItemType.SCP018).Spawn(item.Position + Vector3.up);
+                                break;
+                            }
                     }
                 }
             }
