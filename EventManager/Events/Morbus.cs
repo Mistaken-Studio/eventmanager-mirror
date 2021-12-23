@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Features;
 using Mistaken.API;
+using PlayerStatsSystem;
 
 namespace Mistaken.EventManager.Events
 {
@@ -91,9 +92,12 @@ namespace Mistaken.EventManager.Events
             {
                 foreach (var player in RealPlayers.List)
                 {
-                    if (this.morbusesFirst.Contains(player.Id)) player.Kill(DamageTypes.Decont);
-                    if (this.morbusesSecond.Contains(player.Id)) player.Kill(DamageTypes.Decont);
-                    if (player.Id == this.mother.Id) player.Kill(DamageTypes.Decont);
+                    if (this.morbusesFirst.Contains(player.Id))
+                        player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
+                    if (this.morbusesSecond.Contains(player.Id))
+                        player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
+                    if (player.Id == this.mother.Id)
+                        player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                 }
             });
         }

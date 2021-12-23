@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class DBoiBattleRoyalMicroHid : IEMEventClass,
+    /*internal class DBoiBattleRoyalMicroHid : IEMEventClass,
         IAnnouncePlayersAlive,
         IWinOnLastAlive
     {
@@ -176,7 +176,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -230,7 +230,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -291,7 +291,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -337,7 +337,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment || player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -380,7 +380,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment || player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -421,7 +421,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment || player.CurrentRoom?.Zone == ZoneType.HeavyContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -460,5 +460,5 @@ namespace Mistaken.EventManager.Events
                 this.GiveHid();
             });
         }
-    }
+    }*/
 }

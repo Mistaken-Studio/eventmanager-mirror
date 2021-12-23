@@ -18,9 +18,9 @@ using Mistaken.EventManager;
 using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
-namespace Mistaken.EventManager.Events
+/*namespace Mistaken.EventManager.Events
 {
-    /*internal class TSL : IEMEventClass
+    internal class TSL : IEMEventClass
     {
         public override string Id => "tsl";
 
@@ -737,5 +737,5 @@ namespace Mistaken.EventManager.Events
         Armor = 0,
         Heavy_Armor = 1,
         ATTD = 2
-    }*/
-}
+    }
+}*/
