@@ -30,7 +30,7 @@ namespace Mistaken.EventManager
         /// <summary>
         /// Gets a value indicating whether any Event is active.
         /// </summary>
-        public static bool EventActive { get; private set; } = ActiveEvent != null;
+        public static bool EventActive() => ActiveEvent != null;
 
         /// <inheritdoc cref="Module.Module(IPlugin{IConfig})"/>
         public EventManager(PluginHandler p)
@@ -121,7 +121,7 @@ namespace Mistaken.EventManager
 
         private void Server_WaitingForPlayers()
         {
-            if (!EventActive && EventQueue.TryDequeue(out var eventClass))
+            if (!EventActive() && EventQueue.TryDequeue(out var eventClass))
             {
                 this.Log.Debug(eventClass.Id, PluginHandler.Instance.Config.VerbouseOutput);
                 try
@@ -136,13 +136,13 @@ namespace Mistaken.EventManager
             else
             {
                 this.Log.Debug(EventQueue.Count, PluginHandler.Instance.Config.VerbouseOutput);
-                this.Log.Debug(EventActive, PluginHandler.Instance.Config.VerbouseOutput);
+                this.Log.Debug(EventActive(), PluginHandler.Instance.Config.VerbouseOutput);
             }
         }
 
         private void Server_RoundStarted()
         {
-            if (EventActive)
+            if (EventActive())
                 Map.Broadcast(5, EMLB + $"<color=#6B9ADF>{ActiveEvent.Name}</color>");
         }
 
@@ -154,13 +154,13 @@ namespace Mistaken.EventManager
 
         private void Player_Verified(Exiled.Events.EventArgs.VerifiedEventArgs ev)
         {
-            if (EventActive)
+            if (EventActive())
                 ev.Player.Broadcast(10, $"{EMLB} Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
         {
-            if (!EventActive)
+            if (!EventActive())
                 return;
             if (ActiveEvent is IWinOnEscape)
                 ActiveEvent.OnEnd(ev.Player);
@@ -168,7 +168,7 @@ namespace Mistaken.EventManager
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (!EventActive)
+            if (!EventActive())
                 return;
             var players = Mistaken.API.RealPlayers.List.Where(p => p.IsAlive && p.Id != ev.Target.Id && p.IsHuman).ToList();
             if (players.Count == 1 && ActiveEvent is IWinOnLastAlive)
