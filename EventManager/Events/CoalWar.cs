@@ -45,7 +45,8 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
-            Exiled.Events.Handlers.Player.Verified += this.Player_Verified;
+
+            // Exiled.Events.Handlers.Player.Verified += this.Player_Verified;
         }
 
         public override void OnDeIni()
@@ -54,7 +55,8 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
-            Exiled.Events.Handlers.Player.Verified -= this.Player_Verified;
+
+            // Exiled.Events.Handlers.Player.Verified -= this.Player_Verified;
             this.roundStarted = false;
         }
 
