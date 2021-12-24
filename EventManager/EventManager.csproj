@@ -40,6 +40,7 @@
     <Reference Include="Exiled.Events" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Events.dll" />
     <Reference Include="Mistaken.Updater" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.Updater.dll" />
     <Reference Include="0Mistaken.API" HintPath="$(MISTAKEN_REFERENCES)\0Mistaken.API.dll" />
+    <Reference Include="0Harmony" HintPath="$(MISTAKEN_REFERENCES)\0Harmony.dll" />
     <Reference Include="Mistaken.RoundLogger" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.RoundLogger.dll" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(MISTAKEN_REFERENCES)\UnityEngine.CoreModule.dll" />
     <Reference Include="UnityEngine.PhysicsModule" HintPath="$(MISTAKEN_REFERENCES)\UnityEngine.PhysicsModule.dll" />
@@ -64,6 +65,7 @@
     <Compile Include="Events\Achtung.cs" />
     <Compile Include="Events\BlackDeath.cs" />
     <Compile Include="Events\Blackout.cs" />
+    <Compile Include="Events\CoalWar.cs" />
     <Compile Include="Events\OOoX.cs" />
     <Compile Include="Events\WDB.cs" />
     <Compile Include="Events\Blank.cs" />

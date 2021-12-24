@@ -28,9 +28,8 @@ namespace Mistaken.EventManager
         public static IEMEventClass ActiveEvent { get; set; }
 
         /// <summary>
-        /// Checks if any Event is active.
+        /// Gets a value indicating whether any Event is active.
         /// </summary>
-        /// <returns>true if any Event is active.</returns>
         public static bool EventActive() => ActiveEvent != null;
 
         /// <inheritdoc cref="Module.Module(IPlugin{IConfig})"/>
@@ -49,23 +48,23 @@ namespace Mistaken.EventManager
         /// <inheritdoc/>
         public override void OnEnable()
         {
-            Exiled.Events.Handlers.Server.RoundStarted += this.Handle(() => this.Server_RoundStarted(), "RoundStart");
-            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
-            Exiled.Events.Handlers.Server.RestartingRound += this.Handle(() => this.Server_RestartingRound(), "RoundRestart");
-            Exiled.Events.Handlers.Player.Verified += this.Handle<Exiled.Events.EventArgs.VerifiedEventArgs>((ev) => this.Player_Verified(ev));
-            Exiled.Events.Handlers.Player.Died += this.Handle<Exiled.Events.EventArgs.DiedEventArgs>((ev) => this.Player_Died(ev));
-            Exiled.Events.Handlers.Player.Escaping += this.Handle<Exiled.Events.EventArgs.EscapingEventArgs>((ev) => this.Player_Escaping(ev));
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
+            Exiled.Events.Handlers.Server.RestartingRound += this.Server_RestartingRound;
+            Exiled.Events.Handlers.Player.Verified += this.Player_Verified;
+            Exiled.Events.Handlers.Player.Died += this.Player_Died;
+            Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
         }
 
         /// <inheritdoc/>
         public override void OnDisable()
         {
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Handle(() => this.Server_RoundStarted(), "RoundStart");
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
-            Exiled.Events.Handlers.Server.RestartingRound -= this.Handle(() => this.Server_RestartingRound(), "RoundRestart");
-            Exiled.Events.Handlers.Player.Verified -= this.Handle<Exiled.Events.EventArgs.VerifiedEventArgs>((ev) => this.Player_Verified(ev));
-            Exiled.Events.Handlers.Player.Died -= this.Handle<Exiled.Events.EventArgs.DiedEventArgs>((ev) => this.Player_Died(ev));
-            Exiled.Events.Handlers.Player.Escaping -= this.Handle<Exiled.Events.EventArgs.EscapingEventArgs>((ev) => this.Player_Escaping(ev));
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
+            Exiled.Events.Handlers.Server.RestartingRound -= this.Server_RestartingRound;
+            Exiled.Events.Handlers.Player.Verified -= this.Player_Verified;
+            Exiled.Events.Handlers.Player.Died -= this.Player_Died;
+            Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
         }
 
         /// <summary>

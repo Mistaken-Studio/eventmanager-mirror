@@ -132,7 +132,7 @@ namespace Mistaken.EventManager.Events
 
         private void Player_EnteringPocketDimension(Exiled.Events.EventArgs.EnteringPocketDimensionEventArgs ev)
         {
-            ev.Player.Kill(DamageTypes.Scp106);
+            ev.Player.Kill("Skill issue");
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
@@ -153,7 +153,7 @@ namespace Mistaken.EventManager.Events
                     {
                         var rh = ReferenceHub.GetHub(PlayerManager.localPlayer);
                         foreach (var player in RealPlayers.Get(RoleType.Scp106))
-                            player.ReferenceHub.scp106PlayerScript.Contain(rh);
+                            player.ReferenceHub.scp106PlayerScript.Contain(new Footprinting.Footprint(rh));
                         rh.playerInteract.RpcContain106(rh.gameObject);
                         MEC.Timing.CallDelayed(10, () =>
                         {

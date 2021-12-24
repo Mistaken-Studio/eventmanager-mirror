@@ -83,8 +83,8 @@ namespace Mistaken.EventManager.Events
                 admin.NoClipEnabled = true;
                 admin.IsBypassModeEnabled = true;
                 admin.IsGodModeEnabled = true;
-                admin.AddItem(new Item(ItemType.GunFSP9));
-                admin.AddItem(new Item(ItemType.GunCrossvec));
+                admin.AddItem(new Firearm(ItemType.GunFSP9));
+                admin.AddItem(new Firearm(ItemType.GunCrossvec));
             }
         }
 
@@ -114,7 +114,7 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
-            if (ev.DamageType == DamageTypes.FSP9)
+            if (ev.Attacker.CurrentItem?.Type == ItemType.GunFSP9)
             {
                 var grenade = new Throwable(ItemType.GrenadeHE, ev.Attacker);
                 grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
@@ -123,7 +123,7 @@ namespace Mistaken.EventManager.Events
                 pickup.Locked = true;
                 pickup.Scale = Vector3.zero;
             }
-            else if (ev.DamageType == DamageTypes.CrossVec)
+            else if (ev.Attacker.CurrentItem?.Type == ItemType.GunCrossvec)
             {
             }
         }

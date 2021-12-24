@@ -12,6 +12,7 @@ using Exiled.API.Features;
 using Interactables.Interobjects.DoorUtils;
 using Mistaken.API;
 using Mistaken.EventManager.EventCreator;
+using PlayerStatsSystem;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
@@ -216,7 +217,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -270,7 +271,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -331,7 +332,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -377,7 +378,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment || player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -420,7 +421,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment || player.CurrentRoom?.Zone == ZoneType.Entrance)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }
@@ -461,7 +462,7 @@ namespace Mistaken.EventManager.Events
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment || player.CurrentRoom?.Zone == ZoneType.HeavyContainment)
                             {
-                                player.Kill(DamageTypes.Contain);
+                                player.Hurt(new CustomReasonDamageHandler("Decontaminated"));
                                 player.Broadcast(10, EventManager.EMLB + this.Translations["D_KILL"]);
                             }
                         }

@@ -90,8 +90,8 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
         {
-            if (ev.DamageType == DamageTypes.Logicer && ev.Amount > 30) ev.Amount = 150;
-            else if (ev.DamageType == DamageTypes.Logicer) ev.Amount = 51;
+            // if (ev.DamageType == DamageTypes.Logicer && ev.Amount > 30) ev.Amount = 150;
+            // else if (ev.DamageType == DamageTypes.Logicer) ev.Amount = 51;
         }
     }
 }
