@@ -37,8 +37,6 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
-            LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             PluginHandler.Harmony.Patch(typeof(ThrowableItem).GetMethod("ServerThrow", new Type[] { typeof(float), typeof(float), typeof(Vector3), typeof(Vector3) }), new HarmonyMethod(typeof(Patch2).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
