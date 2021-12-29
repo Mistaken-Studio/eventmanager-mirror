@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using Exiled.API.Features;
-using Mistaken.EventManager.EventCreator;
 
 namespace Mistaken.EventManager.EventArgs
 {

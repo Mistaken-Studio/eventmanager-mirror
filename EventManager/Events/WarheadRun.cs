@@ -9,15 +9,12 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Interactables.Interobjects.DoorUtils;
+using MEC;
 using Mistaken.API;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class WarheadRun :
-        EventCreator.IEMEventClass,
-        EventCreator.IEndOnNoAlive,
-        EventCreator.IWinOnEscape
+    internal class WarheadRun : IEMEventClass, IEndOnNoAlive, IWinOnEscape
     {
         public override string Id => "whr";
 
@@ -27,52 +24,56 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D_Info", "Musisz uciec z placówki.. kto pierwszy ten lepszy!" },
+            { "D_Info", "Musisz uciec z placówki. Kto pierwszy ten lepszy!" },
         };
 
         public override void OnIni()
-        {
-            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-        }
-
-        public override void OnDeIni()
-        {
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-        }
-
-        private void Server_RoundStarted()
         {
             Mistaken.API.Utilities.Map.TeslaMode = Mistaken.API.Utilities.TeslaMode.DISABLED_FOR_ALL;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Map.Lifts.First(e => e.Type() == ElevatorType.Nuke).Network_locked = true;
             foreach (var door in Map.Doors)
             {
                 door.IsOpen = true;
-                var type = door.Type;
-                if (type == DoorType.CheckpointEntrance || type == DoorType.CheckpointLczA || type == DoorType.CheckpointLczB)
+                if (door.Type == DoorType.CheckpointEntrance || door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                     door.ChangeLock(DoorLockType.DecontEvacuate);
                 else if (door.Nametag != string.Empty)
                     door.ChangeLock(DoorLockType.AdminCommand);
             }
+        }
 
-            foreach (var player in RealPlayers.List)
-                player.SlowChangeRole(RoleType.ClassD);
-            Map.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"]);
-            Cassie.Message("nato_a warhead will be initiated in t minus 1 minute", false, true);
-            MEC.Timing.CallDelayed(68, () =>
+        public override void OnDeIni()
+        {
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
+        }
+
+        private void Server_RoundStarted()
+        {
+            Map.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
+            Cassie.Message("NATO_A WARHEAD WILL BE INITIATED IN T MINUS 1 MINUTE", false, true);
+            Timing.CallDelayed(68f, () =>
             {
                 if (!this.Active)
                     return;
                 Warhead.Start();
                 Warhead.IsLocked = true;
-                foreach (var p in Player.Get(RoleType.ClassD))
+                foreach (var player in RealPlayers.Get(RoleType.ClassD))
                 {
-                    p.AddItem(ItemType.SCP207);
-                    p.AddItem(ItemType.SCP500);
+                    player.AddItem(ItemType.SCP207);
+                    player.AddItem(ItemType.SCP500);
                 }
             });
+        }
+
+        private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
+        {
+            if (ev.NewRole != RoleType.Spectator)
+                ev.Player.SlowChangeRole(RoleType.ClassD);
         }
     }
 }

@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
@@ -12,8 +11,6 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using Mistaken.API;
-using Mistaken.API.Extensions;
-using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
@@ -68,9 +65,9 @@ namespace Mistaken.EventManager.Events
             foreach (var player in RealPlayers.Get(Team.SCP))
                 player.SlowChangeRole(RoleType.Scp0492, RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
 
-            Timing.RunCoroutine(this.UpdateInfected());
+            EventManager.Instance.RunCoroutine(this.UpdateInfected(), "wdb_updateinfected");
 
-            Timing.CallDelayed(60 * 20, () =>
+            Timing.CallDelayed(60 * 15, () =>
             {
                 if (!this.Active)
                     return;
@@ -142,7 +139,7 @@ namespace Mistaken.EventManager.Events
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
             if (ev.NewRole == RoleType.FacilityGuard)
-                Timing.CallDelayed(0.1f, () => ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1);
+                Timing.CallDelayed(1f, () => ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1);
         }
 
         private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
@@ -158,7 +155,7 @@ namespace Mistaken.EventManager.Events
         {
             if (this.infected[ev.Target])
             {
-                Timing.CallDelayed(0.1f, () => ev.Target.Role = RoleType.Scp0492);
+                Timing.CallDelayed(1f, () => ev.Target.Role = RoleType.Scp0492);
                 this.infected[ev.Target] = false;
             }
         }
@@ -167,7 +164,6 @@ namespace Mistaken.EventManager.Events
         {
             while (this.Active)
             {
-                yield return Timing.WaitForSeconds(2f);
                 foreach (var player in RealPlayers.List)
                 {
                     if (player.Position.y > 900 && player.Role != RoleType.Scp0492)
@@ -179,6 +175,8 @@ namespace Mistaken.EventManager.Events
                         player.EnableEffect<CustomPlayerEffects.Concussed>();
                     }
                 }
+
+                yield return Timing.WaitForSeconds(2f);
             }
         }
     }

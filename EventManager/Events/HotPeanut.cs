@@ -8,16 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using MEC;
 using Mistaken.API;
 using Mistaken.API.Extensions;
-using Mistaken.EventManager.EventCreator;
+using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class HotPeanut :
-        IEMEventClass,
-        IAnnouncePlayersAlive,
-        IWinOnLastAlive
+    internal class HotPeanut : IEMEventClass, IAnnouncePlayersAlive, IWinOnLastAlive
     {
         public override string Id => "hp";
 
@@ -34,6 +32,9 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
+            this.spawn = RoleType.Scp106.GetRandomSpawnProperties().Item1;
+            Mistaken.API.Utilities.Map.RespawnLock = true;
+            Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
@@ -46,50 +47,32 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
         }
 
+        private Vector3 spawn;
+
         private void Server_RoundStarted()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
-            Round.IsLocked = true;
             var isscp = false;
-            var plist = RealPlayers.List.ToList();
-            plist.Shuffle();
-            foreach (var player in plist)
+            foreach (var player in RealPlayers.RandomList)
             {
                 if (!isscp)
                 {
-                    player.Role = RoleType.Scp173;
-                    MEC.Timing.CallDelayed(10f, () =>
-                    {
-                        player.Position = RoleType.Scp106.GetRandomSpawnProperties().Item1;
-                        player.Health = 10;
-                    });
+                    player.SlowChangeRole(RoleType.Scp173);
                     isscp = true;
                 }
                 else
-                    player.Role = RoleType.ClassD;
+                    player.SlowChangeRole(RoleType.ClassD, this.spawn);
             }
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            MEC.Timing.CallDelayed(1f, () =>
-            {
-                if (ev.Player.Role != RoleType.Scp173)
-                    ev.Player.Position = RoleType.Scp106.GetRandomSpawnProperties().Item1;
-            });
+            if (ev.NewRole == RoleType.Scp173)
+                Timing.CallDelayed(10f, () => ev.Player.Position = this.spawn);
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (RealPlayers.List.Where(x => x.Role == RoleType.ClassD && x.Id != ev.Target.Id).ToArray().Length > 1)
-            {
-                MEC.Timing.CallDelayed(0.1f, () =>
-                {
-                    ev.Target.Role = RoleType.Scp173;
-                    ev.Target.Position = RoleType.Scp106.GetRandomSpawnProperties().Item1;
-                    ev.Target.Health = 10;
-                });
-            }
+            ev.Target.SlowChangeRole(RoleType.Scp173, this.spawn);
         }
     }
 }

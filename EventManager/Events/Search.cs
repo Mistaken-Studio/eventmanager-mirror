@@ -10,16 +10,12 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
-using Exiled.Events.EventArgs;
-using Interactables.Interobjects.DoorUtils;
-using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
+using MEC;
+using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Search : IEMEventClass,
-        ISpawnRandomItems,
-        IWinOnLastAlive
+    internal class Search : IEMEventClass, IWinOnLastAlive
     {
         public override string Id => "search";
 
@@ -29,35 +25,22 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D", "Musisz znaleźć MicroHID'a w HCZ i uciec z nim." },
+            { "D_Info", "Musisz znaleźć MicroHID'a w HCZ i uciec z nim." },
         };
 
         public override void OnIni()
         {
-            Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
-            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-        }
-
-        public override void OnDeIni()
-        {
-            Mistaken.API.Utilities.Map.Blackout.Enabled = false;
-            Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
-        }
-
-        private void Server_RoundStarted()
-        {
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            var doors = Map.Doors;
-            foreach (var door in doors)
+            Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
+            foreach (var door in Map.Doors)
             {
-                var doorType = door.Type;
-                if (door.Nametag == string.Empty) door.IsOpen = true;
-                else if (doorType != DoorType.HID)
+                if (door.Nametag == string.Empty)
+                    door.IsOpen = true;
+                else if (door.Type != DoorType.HID)
                 {
                     door.IsOpen = true;
                     door.ChangeLock(DoorLockType.Warhead);
@@ -71,55 +54,68 @@ namespace Mistaken.EventManager.Events
 
             foreach (var e in Map.Lifts)
             {
-                var elevatorType = e.Type();
-                if (elevatorType == ElevatorType.LczA || elevatorType == ElevatorType.LczB) e.Network_locked = true;
+                var eType = e.Type();
+                if (eType == ElevatorType.LczA || eType == ElevatorType.LczB)
+                    e.Network_locked = true;
             }
 
-            Map.Broadcast(10, EventManager.EMLB + this.Translations["D"]);
-            foreach (var player in RealPlayers.List)
-                player.Role = RoleType.ClassD;
-            int rand = UnityEngine.Random.Range(0, 7);
-            switch (rand)
+            this.spawn = Map.Rooms.First(x => x.Type == RoomType.EzGateB).transform.position + (Vector3.up * 2);
+        }
+
+        public override void OnDeIni()
+        {
+            Mistaken.API.Utilities.Map.Blackout.Enabled = false;
+            Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
+        }
+
+        private Vector3 spawn;
+
+        private void Server_RoundStarted()
+        {
+            Map.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
+            switch (UnityEngine.Random.Range(0, 7))
             {
                 case 0:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp079First).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp079First).Position);
                         break;
                     }
 
                 case 1:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp079Second).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp079Second).Position);
                         break;
                     }
 
                 case 2:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp049Armory).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp049Armory).Position);
                         break;
                     }
 
                 case 3:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp096).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp096).Position);
                         break;
                     }
 
                 case 4:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp106Primary).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp106Primary).Position);
                         break;
                     }
 
                 case 5:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.Scp106Secondary).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp106Secondary).Position);
                         break;
                     }
 
                 case 6:
                     {
-                        new Item(ItemType.MicroHID).Spawn(doors.First(d => d.Type == DoorType.NukeArmory).Position);
+                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.NukeArmory).Position);
                         break;
                     }
             }
@@ -131,18 +127,15 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            MEC.Timing.CallDelayed(1f, () => ev.Player.Position = RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
+            if (ev.NewRole != RoleType.Spectator)
+            {
+                ev.Player.SlowChangeRole(RoleType.ClassD, this.spawn);
+                Timing.CallDelayed(1f, () => ev.Player.AddItem(ItemType.Flashlight));
+            }
         }
 
-        private void Player_Escaping(EscapingEventArgs ev)
+        private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
         {
-            Log.Debug(ev.Player.Id);
-            foreach (var item in ev.Player.Items)
-            {
-                Log.Debug(item.Type);
-            }
-
-            Log.Debug(ev.Player.Items.Any(i => i.Type == ItemType.MicroHID).ToString());
             if (ev.Player.Items.Any(i => i.Type == ItemType.MicroHID))
                 this.OnEnd(ev.Player);
             else

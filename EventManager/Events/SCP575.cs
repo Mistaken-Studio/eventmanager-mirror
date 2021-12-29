@@ -5,10 +5,13 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
+using Exiled.API.Enums;
 using Exiled.API.Features;
+using InventorySystem.Items.Firearms;
 using MEC;
 using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
+using PlayerStatsSystem;
 
 namespace Mistaken.EventManager.Events
 {
@@ -22,29 +25,36 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            // { "", "" }
+            { "HUMAN_Info", "Nastąpił wyłom <color=gray>SCP-575</color>! Zdobądźcie latarkę lub zamontujcie ją na broni.. inaczej [REDACTED]" },
         };
 
         public override void OnIni()
         {
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
+            Exiled.Events.Handlers.Player.TogglingFlashlight += this.Player_TogglingFlashlight;
+            Exiled.Events.Handlers.Player.TogglingWeaponFlashlight += this.Player_TogglingWeaponFlashlight;
         }
 
         public override void OnDeIni()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
+            Exiled.Events.Handlers.Player.TogglingFlashlight -= this.Player_TogglingFlashlight;
+            Exiled.Events.Handlers.Player.TogglingWeaponFlashlight -= this.Player_TogglingWeaponFlashlight;
         }
 
-        // private bool attack = false;
+        private readonly Dictionary<Player, (bool flashlight, bool weapon)> onFlashlights = new Dictionary<Player, (bool, bool)>();
+
+        private bool attackPhase = false;
+
         private void Server_RoundStarted()
         {
-            // this.Scp575AttackScript();
-            Timing.CallDelayed(UnityEngine.Random.Range(30, 90), () =>
-            {
-                this.Scp575LigtsScript();
-            });
+            foreach (var player in RealPlayers.List.Where(x => x.Team != Team.SCP))
+                player.Broadcast(8, EventManager.EMLB + this.Translations["HUMAN_Info"], shouldClearPrevious: true);
+
+            EventManager.Instance.RunCoroutine(this.Lights(), "scp575_lights");
+            EventManager.Instance.RunCoroutine(this.Attack(), "scp575_attack");
         }
 
         private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)
@@ -52,45 +62,58 @@ namespace Mistaken.EventManager.Events
             this.DeInitiate();
         }
 
-        private void Scp575LigtsScript()
+        private void Player_TogglingWeaponFlashlight(Exiled.Events.EventArgs.TogglingWeaponFlashlightEventArgs ev)
         {
-            if (!this.Active)
-                return;
-            int time = UnityEngine.Random.Range(180, 300);
-            Map.TurnOffAllLights(time);
-
-            // this.attack = true;
-            Timing.CallDelayed(time, () =>
-            {
-                // this.attack = false;
-                Timing.CallDelayed(60, () =>
-                {
-                    this.Scp575LigtsScript();
-                });
-            });
+            if (!this.onFlashlights.ContainsKey(ev.Player))
+                this.onFlashlights[ev.Player] = (false, false);
+            this.onFlashlights[ev.Player] = (ev.NewState, this.onFlashlights[ev.Player].weapon);
         }
 
-        /*private void Scp575AttackScript()
+        private void Player_TogglingFlashlight(Exiled.Events.EventArgs.TogglingFlashlightEventArgs ev)
         {
-            if (!this.Active)
-                return;
-            if (this.attack)
+            if (!this.onFlashlights.ContainsKey(ev.Player))
+                this.onFlashlights[ev.Player] = (false, false);
+            this.onFlashlights[ev.Player] = (this.onFlashlights[ev.Player].flashlight, ev.NewState);
+        }
+
+        private IEnumerator<float> Lights()
+        {
+            while (this.Active)
             {
-                foreach (Player player in RealPlayers.List)
+                int time = UnityEngine.Random.Range(100, 200);
+                Map.TurnOffAllLights(time, ZoneType.HeavyContainment);
+                this.attackPhase = true;
+                yield return Timing.WaitForSeconds(time);
+                this.attackPhase = false;
+                yield return Timing.WaitForSeconds(60);
+            }
+        }
+
+        private IEnumerator<float> Attack()
+        {
+            while (this.Active)
+            {
+                yield return Timing.WaitForSeconds(15);
+                if (!this.attackPhase)
+                    continue;
+                foreach (var player in RealPlayers.List)
                 {
-                    if (player.CurrentItem.Type != ItemType.Flashlight ||
-                        player.CurrentItem.Type == ItemType.GunE11SR && player.CurrentItem.modOther != 4 ||
-                        player.CurrentItem.Type == ItemType.GunCOM15 && player.CurrentItem.modOther != 1 ||
-                        player.CurrentItem.Type == ItemType.GunCOM18 && player.CurrentItem.modOther != 1 ||
-                        player.CurrentItem.Type == ItemType.GunCrossvec && player.CurrentItem.modOther != 1)
-                        player.Health -= UnityEngine.Random.Range(10, 30);
+                    if (player.Team == Team.SCP)
+                        continue;
+                    if (player.Zone == ZoneType.HeavyContainment)
+                    {
+                        if (this.onFlashlights[player].flashlight || this.onFlashlights[player].weapon)
+                        {
+                            if (player.CurrentItem.Base is Firearm || player.CurrentItem.Type == ItemType.Flashlight)
+                                continue;
+                            else
+                                player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
+                        }
+                        else
+                            player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
+                    }
                 }
             }
-
-            Timing.CallDelayed(UnityEngine.Random.Range(10, 20), () =>
-            {
-                this.Scp575AttackScript();
-            });
-        }*/
+        }
     }
 }

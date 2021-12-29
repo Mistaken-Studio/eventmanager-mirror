@@ -14,15 +14,16 @@ using InventorySystem.Items.ThrowableProjectiles;
 using MEC;
 using Mirror;
 using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
 using PlayerStatsSystem;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
+#pragma warning disable SA1402
+#pragma warning disable SA1313
     internal class CoalWar : IEMEventClass, IWinOnLastAlive, IAnnouncePlayersAlive
     {
-        public override string Id => "CoWar";
+        public override string Id => "cowar";
 
         public override string Description => "U are all naughty.. or are you?";
 
@@ -30,7 +31,7 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D_Spawn", "Walka <color=black>węglem</color>.. <color=#6B9ADF>Ostatni żywy wygrywa</color>" },
+            { "D_Spawn", "Walka <color=black>węglem</color>. <color=#6B9ADF>Ostatni żywy wygrywa</color>" },
         };
 
         public bool ClearPrevious => true;
@@ -55,7 +56,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            Timing.RunCoroutine(this.UpdateCoal());
+            EventManager.Instance.RunCoroutine(this.UpdateCoal(), "coalwar_updatecoal");
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
@@ -63,7 +64,7 @@ namespace Mistaken.EventManager.Events
             if (ev.NewRole != RoleType.Spectator)
             {
                 ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
-                ev.Player.Broadcast(8, EventManager.EMLB + " " + this.Translations["D_Spawn"], shouldClearPrevious: true);
+                ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Spawn"], shouldClearPrevious: true);
             }
         }
 
@@ -83,9 +84,6 @@ namespace Mistaken.EventManager.Events
             }
         }
     }
-
-#pragma warning disable SA1313
-#pragma warning disable SA1402
 
     [HarmonyPatch(typeof(ThrowableItem), "ServerThrow", new Type[] { typeof(float), typeof(float), typeof(Vector3), typeof(Vector3) })]
     internal class Patch2
@@ -121,20 +119,16 @@ namespace Mistaken.EventManager.Events
     {
         private EffectGrenade coal;
         private bool used;
-        private Vector3 lastPosition;
-        private float distance;
+        private Vector3 startPosition;
 
         private void Awake()
         {
             this.coal = this.GetComponent<EffectGrenade>();
-            this.lastPosition = this.coal.transform.position;
+            this.startPosition = this.coal.transform.position;
         }
 
         private void FixedUpdate()
         {
-            this.distance += Vector3.Distance(this.coal.transform.position, this.lastPosition);
-            this.lastPosition = this.coal.transform.position;
-
             foreach (var obj in Physics.OverlapSphere(this.coal.transform.position, 0.25f))
             {
                 if (obj.TryGetComponent<IDestructible>(out var p))
@@ -144,10 +138,11 @@ namespace Mistaken.EventManager.Events
 
                     if (!this.used)
                     {
+                        var distance = Vector3.Distance(this.coal.transform.position, this.startPosition);
                         float damage = 35f;
                         this.used = true;
-                        if (this.distance > 10f)
-                            damage = this.distance * 4f;
+                        if (distance > 8f)
+                            damage = distance * 5.5f;
 
                         p.Damage(0f, new CustomReasonDamageHandler("Skill issue", damage), this.transform.position);
                         this.coal.ServerFuseEnd();

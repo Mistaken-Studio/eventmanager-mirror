@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Mistaken.EventManager.EventCreator;
+using Exiled.API.Features;
 
 namespace Mistaken.EventManager.Events
 {
@@ -24,6 +24,10 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
+            Mistaken.API.Utilities.Map.RespawnLock = true;
+            Round.IsLocked = true;
+            LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
+            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
         }
 
         public override void OnDeIni()

@@ -9,7 +9,6 @@ using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
 using Mistaken.API.Diagnostics;
-using Mistaken.EventManager.EventCreator;
 
 namespace Mistaken.EventManager
 {
@@ -36,6 +35,7 @@ namespace Mistaken.EventManager
         public EventManager(PluginHandler p)
             : base(p)
         {
+            Instance = this;
             this.LoadEvents();
             BasePath = this.SetBasePath(PluginHandler.Instance.Config.EMFolderPath);
             if (!Directory.GetFiles(BasePath).Contains("winners.txt"))
@@ -83,9 +83,8 @@ namespace Mistaken.EventManager
 
         internal static readonly string EMLB = $"[<color=#6B9ADF><b>Event Manager</b></color> {(DNPN ? "<color=#6B9ADF>Test Build</color>" : string.Empty)}] ";
 
-        /// <summary>
-        /// Gets or sets queue of Events.
-        /// </summary>
+        internal static EventManager Instance { get; private set; }
+
         internal static Queue<IEMEventClass> EventQueue { get; set; } = new Queue<IEMEventClass>();
 
         internal static string BasePath { get; private set; }
@@ -116,7 +115,7 @@ namespace Mistaken.EventManager
         private void PrepareEvent(IEMEventClass ev)
         {
             Events[ev.Id] = ev;
-            this.Log.Info("Event Loaded: " + ev.Id);
+            this.Log.Debug("Event Loaded: " + ev.Name, PluginHandler.Instance.Config.VerbouseOutput);
         }
 
         private void Server_WaitingForPlayers()
@@ -155,7 +154,7 @@ namespace Mistaken.EventManager
         private void Player_Verified(Exiled.Events.EventArgs.VerifiedEventArgs ev)
         {
             if (EventActive())
-                ev.Player.Broadcast(10, $"{EMLB} Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
+                ev.Player.Broadcast(10, EMLB + $"Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)

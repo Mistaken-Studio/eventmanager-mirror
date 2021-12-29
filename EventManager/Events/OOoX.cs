@@ -10,12 +10,10 @@ using System.IO;
 using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
-using InventorySystem.Items.ThrowableProjectiles;
 using MEC;
 using Mistaken.API;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
-using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events

@@ -10,14 +10,11 @@ using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using Mistaken.API;
 using Mistaken.API.Extensions;
-using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Achtung : IEMEventClass,
-        IWinOnLastAlive,
-        IAnnouncePlayersAlive
+    internal class Achtung : IEMEventClass, IWinOnLastAlive, IAnnouncePlayersAlive
     {
         public override string Id => "achtung";
 
@@ -27,13 +24,15 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D", "Granaty pojawią się pod Tobą. Ostatni żywy wygrywa!" },
+            { "D_Info", "Granaty pojawią się pod Tobą. Ostatni żywy wygrywa" },
         };
 
         public bool ClearPrevious => true;
 
         public override void OnIni()
         {
+            Mistaken.API.Utilities.Map.RespawnLock = true;
+            Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
         }
@@ -46,17 +45,16 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
-            Round.IsLocked = true;
-            foreach (var player in RealPlayers.List)
-                player.Role = RoleType.ClassD;
-            MEC.Timing.RunCoroutine(this.SpawnGrenades(20));
-            Map.Broadcast(10, $"{EventManager.EMLB} {this.Translations["D"]}");
+            EventManager.Instance.RunCoroutine(this.SpawnGrenades(20), "achtung_spawngrenades");
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            MEC.Timing.CallDelayed(1f, () => ev.Player.Position = RoleType.Scp106.GetRandomSpawnProperties().Item1);
+            if (ev.NewRole != RoleType.Spectator)
+            {
+                ev.Player.SlowChangeRole(RoleType.ClassD, RoleType.Scp106.GetRandomSpawnProperties().Item1);
+                ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
+            }
         }
 
         private IEnumerator<float> SpawnGrenades(float time)
@@ -71,7 +69,7 @@ namespace Mistaken.EventManager.Events
                     this.DropGrenadeUnder(player);
                     if (time < 7)
                     {
-                        yield return MEC.Timing.WaitForSeconds(1);
+                        yield return MEC.Timing.WaitForSeconds(UnityEngine.Random.Range(0f, 2f));
                         this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(0, 3));
                     }
                 }
