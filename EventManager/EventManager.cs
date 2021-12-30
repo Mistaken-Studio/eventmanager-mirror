@@ -1,6 +1,8 @@
-﻿// <copyright file="EventManager.cs" company="Mistaken">
+﻿// -----------------------------------------------------------------------
+// <copyright file="EventManager.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;

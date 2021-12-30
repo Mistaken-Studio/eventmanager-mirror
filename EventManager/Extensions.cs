@@ -1,6 +1,8 @@
-﻿// <copyright file="Extensions.cs" company="Mistaken">
+﻿// -----------------------------------------------------------------------
+// <copyright file="Extensions.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Mistaken.EventManager
     /// <summary>
     /// Extensions.
     /// </summary>
-    public static class Extensions
+    internal static class Extensions
     {
         /// <summary>
         /// Waits 1s, changes role, waits 1s, sets position if not default.
