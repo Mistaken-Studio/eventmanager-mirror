@@ -26,7 +26,7 @@ namespace Mistaken.EventManager
         /// Gets or sets a path for the EventManager folder.
         /// </summary>
         [Description("Sets the path for the EventManager folder. If not set, it will be created in Plugins folder")]
-        public string EMFolderPath { get; set; }
+        public string FolderPath { get; set; }
 
         /// <summary>
         /// Gets or sets a value after which a new winners file is created.
