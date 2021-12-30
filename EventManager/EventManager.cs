@@ -38,7 +38,7 @@ namespace Mistaken.EventManager
             : base(p)
         {
             Instance = this;
-            BasePath = this.SetBasePath(PluginHandler.Instance.Config.EMFolderPath);
+            BasePath = this.SetBasePath(PluginHandler.Instance.Config.FolderPath);
             this.LoadEvents();
         }
 
