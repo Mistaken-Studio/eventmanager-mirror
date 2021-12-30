@@ -10,6 +10,7 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
+using MEC;
 using Mistaken.API;
 using PlayerStatsSystem;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace Mistaken.EventManager.Events
         {
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             var rooms = Map.Rooms.ToList();
             rooms.RemoveAll(x => x.Zone != ZoneType.HeavyContainment);
             for (int i = 0; i < 5; i++)
@@ -79,12 +81,17 @@ namespace Mistaken.EventManager.Events
                     door.ChangeLock(DoorLockType.AdminCommand);
                     door.IsOpen = true;
                 }
-                else if (door.Nametag != string.Empty && !(door.Type == DoorType.HIDLeft || door.Type == DoorType.HIDRight || door.Type == DoorType.Scp106Primary || door.Type == DoorType.Scp106Secondary || door.Type == DoorType.Scp106Bottom))
+                else if (door.Type == DoorType.HID || door.Type == DoorType.Scp106Primary || door.Type == DoorType.Scp106Secondary || door.Type == DoorType.Scp106Bottom)
                     door.ChangeLock(DoorLockType.AdminCommand);
+                else if (door.Type == DoorType.CheckpointEntrance)
+                    door.ChangeLock(DoorLockType.DecontLockdown);
             }
 
             foreach (var e in Map.Lifts)
-                e.Network_locked = true;
+            {
+                if (e.Type() != ElevatorType.Nuke)
+                    e.Network_locked = true;
+            }
         }
 
         public override void OnDeIni()
@@ -117,7 +124,8 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ActivatingGenerator(Exiled.Events.EventArgs.ActivatingGeneratorEventArgs ev)
         {
-            ev.Generator._totalActivationTime = 180f;
+            if (ev.Generator._totalActivationTime > 180f)
+                ev.Generator._totalActivationTime = 180f;
         }
 
         private void Player_EnteringPocketDimension(Exiled.Events.EventArgs.EnteringPocketDimensionEventArgs ev)
@@ -139,19 +147,19 @@ namespace Mistaken.EventManager.Events
 
         private void Map_GeneratorActivated(Exiled.Events.EventArgs.GeneratorActivatedEventArgs ev)
         {
-            if (Map.ActivatedGenerators > 2)
+            if (Map.ActivatedGenerators > 1)
             {
                 Cassie.Message("ALL GENERATORS HAVE BEEN SUCCESSFULLY ENGAGED . SCP 1 0 6 RECONTAINMENT SEQUENCE COMMENCING IN T MINUS 1 MINUTE", false, true);
-                MEC.Timing.CallDelayed(60f, () =>
+                Timing.CallDelayed(60f, () =>
                 {
                     Cassie.Message("SCP 1 0 6 RECONTAINMENT SEQUENCE COMMENCING IN 3 . 2 . 1 . ", false, true);
-                    MEC.Timing.CallDelayed(8f, () =>
+                    Timing.CallDelayed(8f, () =>
                     {
                         var rh = ReferenceHub.GetHub(PlayerManager.localPlayer);
                         foreach (var player in RealPlayers.Get(RoleType.Scp106))
                             player.ReferenceHub.scp106PlayerScript.Contain(new Footprinting.Footprint(rh));
                         rh.playerInteract.RpcContain106(rh.gameObject);
-                        MEC.Timing.CallDelayed(10f, () => this.OnEnd("<color=orange>Klasa D wygrywa!</color>"));
+                        Timing.CallDelayed(10f, () => this.OnEnd("<color=orange>Klasa D wygrywa!</color>"));
                     });
                 });
             }

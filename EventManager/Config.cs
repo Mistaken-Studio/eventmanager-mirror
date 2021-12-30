@@ -23,6 +23,12 @@ namespace Mistaken.EventManager
         public bool VerbouseOutput { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether em force command should not count amount of players.
+        /// </summary>
+        [Description("If true then em force command won't count amount of players")]
+        public bool Dnpn { get; set; }
+
+        /// <summary>
         /// Gets or sets a path for the EventManager folder.
         /// </summary>
         [Description("Sets the path for the EventManager folder. If not set, it will be created in Plugins folder")]

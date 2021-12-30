@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Exiled.API.Features;
 
 namespace Mistaken.EventManager.Events
@@ -27,7 +28,7 @@ namespace Mistaken.EventManager.Events
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
         }
 
         public override void OnDeIni()

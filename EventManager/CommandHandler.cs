@@ -45,7 +45,7 @@ namespace Mistaken.EventManager
 
         public static (bool, string[]) ForceCommand(string[] args, Player sender)
         {
-            if (Mistaken.API.RealPlayers.List.Count() < 4 && !EventManager.DNPN)
+            if (Mistaken.API.RealPlayers.List.Count() < 4 && !PluginHandler.Instance.Config.Dnpn)
                 return (false, new string[] { "You can't use this command. Not enough players!" });
             else if (EventManager.EventActive())
                 return (false, new string[] { "You can't forcestack events" });

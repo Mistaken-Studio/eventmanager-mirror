@@ -37,7 +37,7 @@ namespace Mistaken.EventManager.Events
             this.decontaminated = 0;
             Mistaken.API.Utilities.Map.TeslaMode = Mistaken.API.Utilities.TeslaMode.DISABLED_FOR_ALL;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;

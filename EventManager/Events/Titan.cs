@@ -10,9 +10,11 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Mistaken.API;
+using Mistaken.API.Shield;
 
 namespace Mistaken.EventManager.Events
 {
+#pragma warning disable SA1402
     internal class Titan : IEMEventClass
     {
         public override string Id => "titan";
@@ -33,8 +35,6 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
-
-            // Exiled.Events.Handlers.Player.Hurting += this.Player_Hurting;
             foreach (var e in Map.Lifts)
             {
                 var etype = e.Type();
@@ -47,8 +47,6 @@ namespace Mistaken.EventManager.Events
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
-
-            // Exiled.Events.Handlers.Player.Hurting -= this.Player_Hurting;
         }
 
         private void Server_RoundStarted()
@@ -58,8 +56,6 @@ namespace Mistaken.EventManager.Events
             players.Remove(titan);
             titan.SlowChangeRole(RoleType.ChaosMarauder);
             titan.Broadcast(8, EventManager.EMLB + this.Translations["T_Info"]);
-            titan.Health *= players.Count() + 1;
-            titan.ArtificialHealth = (players.Count() + 1) * 30;
             foreach (var player in players)
             {
                 switch (UnityEngine.Random.Range(0, 3))
@@ -77,6 +73,8 @@ namespace Mistaken.EventManager.Events
 
                 player.Broadcast(8, EventManager.EMLB + this.Translations["MTF_Info"]);
             }
+
+            TitanShield.Ini<TitanShield>(titan);
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
@@ -86,14 +84,17 @@ namespace Mistaken.EventManager.Events
                 this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
             else if (players.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
                 this.OnEnd("<color=blue>MFO</color> wygrywa!");
-            else if (ev.Target.Team == Team.MTF)
-                players.First(x => x.Role == RoleType.ChaosRifleman).ArtificialHealth += 8 * players.Count();
         }
+    }
 
-        private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
-        {
-            // if (ev.DamageType == DamageTypes.Logicer && ev.Amount > 30) ev.Amount = 150;
-            // else if (ev.DamageType == DamageTypes.Logicer) ev.Amount = 51;
-        }
+    internal class TitanShield : Shield
+    {
+        protected override float MaxShield => 1000;
+
+        protected override float ShieldRechargeRate => 25;
+
+        protected override float ShieldEffectivnes => 1;
+
+        protected override float TimeUntilShieldRecharge => 5;
     }
 }

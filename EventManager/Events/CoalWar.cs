@@ -62,10 +62,10 @@ namespace Mistaken.EventManager.Events
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
             if (ev.NewRole != RoleType.Spectator)
-            {
-                ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
-                ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Spawn"], shouldClearPrevious: true);
-            }
+                return;
+
+            ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
+            ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Spawn"], shouldClearPrevious: true);
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
@@ -125,6 +125,7 @@ namespace Mistaken.EventManager.Events
         {
             this.coal = this.GetComponent<EffectGrenade>();
             this.startPosition = this.coal.transform.position;
+            this.coal._fuseTime = 10f;
         }
 
         private void FixedUpdate()

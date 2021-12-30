@@ -39,7 +39,7 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             Mistaken.API.Utilities.Map.TeslaMode = Mistaken.API.Utilities.TeslaMode.DISABLED_FOR_ALL;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             foreach (var e in Map.Lifts)
             {
@@ -430,6 +430,7 @@ namespace Mistaken.EventManager.Events
 
         private IEnumerator<float> GiveHid()
         {
+            yield return Timing.WaitForSeconds(5f);
             while (this.Active)
             {
                 foreach (var player in RealPlayers.List)

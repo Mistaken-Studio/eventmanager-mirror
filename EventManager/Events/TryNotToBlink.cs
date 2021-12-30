@@ -5,10 +5,10 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using MEC;
-using Mistaken.API;
 
 namespace Mistaken.EventManager.Events
 {
@@ -27,7 +27,7 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
@@ -36,13 +36,19 @@ namespace Mistaken.EventManager.Events
             foreach (var door in Map.Doors)
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
+                {
                     door.ChangeLock(DoorLockType.DecontLockdown);
+                    door.IsOpen = true;
+                }
                 else
                 {
                     door.IsOpen = true;
                     door.ChangeLock(DoorLockType.AdminCommand);
                 }
             }
+
+            foreach (var e in Map.Lifts)
+                e.Network_locked = true;
         }
 
         public override void OnDeIni()
@@ -54,24 +60,23 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            foreach (var player in RealPlayers.RandomList)
-            {
-                if (player.Team != Team.SCP)
-                    player.SlowChangeRole(RoleType.ClassD);
-                else
-                    player.SlowChangeRole(RoleType.Scp173);
-            }
-
             Cassie.Message("LIGHT SYSTEM ERROR . LIGHTS OUT", false, true);
             Map.TurnOffAllLights(float.MaxValue);
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
+            if (ev.NewRole == RoleType.Spectator)
+                return;
             Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Role == RoleType.ClassD)
-                    ev.Player.AddItem(ItemType.Flashlight);
+                if (ev.Player.Team == Team.SCP)
+                    ev.Player.SlowChangeRole(RoleType.Scp173);
+                else
+                {
+                    ev.Player.SlowChangeRole(RoleType.ClassD);
+                    Timing.CallDelayed(0.5f, () => ev.Player.AddItem(ItemType.Flashlight));
+                }
             });
         }
 

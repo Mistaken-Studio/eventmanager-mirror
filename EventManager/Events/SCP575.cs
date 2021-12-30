@@ -9,6 +9,7 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using InventorySystem.Items.Firearms;
+using InventorySystem.Items.Flashlight;
 using MEC;
 using Mistaken.API;
 using PlayerStatsSystem;
@@ -32,19 +33,13 @@ namespace Mistaken.EventManager.Events
         {
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
-            Exiled.Events.Handlers.Player.TogglingFlashlight += this.Player_TogglingFlashlight;
-            Exiled.Events.Handlers.Player.TogglingWeaponFlashlight += this.Player_TogglingWeaponFlashlight;
         }
 
         public override void OnDeIni()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
-            Exiled.Events.Handlers.Player.TogglingFlashlight -= this.Player_TogglingFlashlight;
-            Exiled.Events.Handlers.Player.TogglingWeaponFlashlight -= this.Player_TogglingWeaponFlashlight;
         }
-
-        private readonly Dictionary<Player, (bool flashlight, bool weapon)> onFlashlights = new Dictionary<Player, (bool, bool)>();
 
         private bool attackPhase = false;
 
@@ -62,20 +57,6 @@ namespace Mistaken.EventManager.Events
             this.DeInitiate();
         }
 
-        private void Player_TogglingWeaponFlashlight(Exiled.Events.EventArgs.TogglingWeaponFlashlightEventArgs ev)
-        {
-            if (!this.onFlashlights.ContainsKey(ev.Player))
-                this.onFlashlights[ev.Player] = (false, false);
-            this.onFlashlights[ev.Player] = (ev.NewState, this.onFlashlights[ev.Player].weapon);
-        }
-
-        private void Player_TogglingFlashlight(Exiled.Events.EventArgs.TogglingFlashlightEventArgs ev)
-        {
-            if (!this.onFlashlights.ContainsKey(ev.Player))
-                this.onFlashlights[ev.Player] = (false, false);
-            this.onFlashlights[ev.Player] = (this.onFlashlights[ev.Player].flashlight, ev.NewState);
-        }
-
         private IEnumerator<float> Lights()
         {
             while (this.Active)
@@ -91,9 +72,9 @@ namespace Mistaken.EventManager.Events
 
         private IEnumerator<float> Attack()
         {
+            yield return Timing.WaitForSeconds(10f);
             while (this.Active)
             {
-                yield return Timing.WaitForSeconds(15);
                 if (!this.attackPhase)
                     continue;
                 foreach (var player in RealPlayers.List)
@@ -102,17 +83,16 @@ namespace Mistaken.EventManager.Events
                         continue;
                     if (player.Zone == ZoneType.HeavyContainment)
                     {
-                        if (this.onFlashlights[player].flashlight || this.onFlashlights[player].weapon)
-                        {
-                            if (player.CurrentItem.Base is Firearm || player.CurrentItem.Type == ItemType.Flashlight)
-                                continue;
-                            else
-                                player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
-                        }
+                        if (player.CurrentItem.Base is Firearm firearm && firearm.Status.Flags == FirearmStatusFlags.FlashlightEnabled)
+                            continue;
+                        else if (player.CurrentItem.Base is FlashlightItem flashlight && flashlight.IsEmittingLight)
+                            continue;
                         else
                             player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
                     }
                 }
+
+                yield return Timing.WaitForSeconds(15);
             }
         }
     }

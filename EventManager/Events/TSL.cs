@@ -112,7 +112,7 @@ namespace Mistaken.EventManager.Events
             this.staticPlayers.Clear();
             this.traitorTesterUses = 0;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Patch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));

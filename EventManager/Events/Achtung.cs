@@ -50,11 +50,10 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.NewRole != RoleType.Spectator)
-            {
-                ev.Player.SlowChangeRole(RoleType.ClassD, RoleType.Scp106.GetRandomSpawnProperties().Item1);
-                ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
-            }
+            if (ev.NewRole == RoleType.Spectator)
+                return;
+            ev.Player.SlowChangeRole(RoleType.ClassD, RoleType.Scp106.GetRandomSpawnProperties().Item1);
+            ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
         }
 
         private IEnumerator<float> SpawnGrenades(float time)

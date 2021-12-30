@@ -38,8 +38,9 @@ namespace Mistaken.EventManager.Events
             this.escapeDoors.Clear();
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             foreach (var door in Map.Doors)
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
@@ -62,6 +63,7 @@ namespace Mistaken.EventManager.Events
         public override void OnDeIni()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
         }
 
         private readonly List<Door> checkpointdoors = new List<Door>();
@@ -72,29 +74,6 @@ namespace Mistaken.EventManager.Events
         {
             var scpSpawn = Map.Doors.First(x => x.Type == DoorType.Scp173Gate);
             scpSpawn.ChangeLock(DoorLockType.AdminCommand);
-
-            foreach (var player in RealPlayers.List)
-            {
-                if (player.Team == Team.SCP)
-                {
-                    player.SlowChangeRole(RoleType.Scp93953, RoleType.Scp173.GetRandomSpawnProperties().Item1);
-                    player.Broadcast(8, EventManager.EMLB + this.Translations["SCP_Info"]);
-                    foreach (var door in this.escapeDoors)
-                    {
-                        if (Server.SendSpawnMessage != null)
-                        {
-                            if (player.ReferenceHub.networkIdentity.connectionToClient == null)
-                                continue;
-                            Server.SendSpawnMessage.Invoke(null, new object[] { door.netIdentity, player.Connection });
-                        }
-                    }
-                }
-                else
-                {
-                    player.SlowChangeRole(RoleType.ClassD);
-                    player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"]);
-                }
-            }
 
             Timing.CallDelayed(25f, () =>
             {
@@ -115,20 +94,50 @@ namespace Mistaken.EventManager.Events
             EventManager.Instance.RunCoroutine(this.UpdateWinner(), "hide_updatewinner");
         }
 
+        private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
+        {
+            if (ev.NewRole == RoleType.Spectator)
+                return;
+
+            Timing.CallDelayed(1f, () =>
+            {
+                if (ev.Player.Team == Team.SCP)
+                {
+                    ev.Player.SlowChangeRole(RoleType.Scp93953, RoleType.Scp173.GetRandomSpawnProperties().Item1);
+                    ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["SCP_Info"]);
+                    foreach (var door in this.escapeDoors)
+                    {
+                        if (Server.SendSpawnMessage != null)
+                        {
+                            if (ev.Player.ReferenceHub.networkIdentity.connectionToClient == null)
+                                continue;
+                            Server.SendSpawnMessage.Invoke(null, new object[] { door.netIdentity, ev.Player.Connection });
+                        }
+                    }
+                }
+                else
+                {
+                    ev.Player.SlowChangeRole(RoleType.ClassD);
+                    ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"]);
+                }
+            });
+        }
+
         private IEnumerator<float> UpdateWinner()
         {
+            yield return Timing.WaitForSeconds(10f);
             while (this.Active)
             {
                 List<Player> winners = new List<Player>();
                 foreach (var player in RealPlayers.List)
                 {
-                    if (player.CurrentRoom.Zone == ZoneType.HeavyContainment)
+                    if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment)
                         winners.Add(player);
                 }
 
                 if (winners.Count > 1)
                     this.OnEnd($"<color=orange>Klasa D</color> wygrywa! ({winners.Count} <color=orange>Klas D</color> uciekło)");
-                else if (winners.Count != 0)
+                else if (winners.Count == 1)
                     this.OnEnd($"<color=orange>Klasa D</color> wygrywa! ({winners[0].Nickname} uciekł)", winners[0]);
                 else if (!RealPlayers.Any(Team.CDP))
                     this.OnEnd("<color=red>SCP</color> wygrywa!");

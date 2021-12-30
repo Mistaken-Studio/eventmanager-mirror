@@ -10,6 +10,7 @@ using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using InventorySystem.Items.Firearms.Ammo;
+using MEC;
 using Mistaken.API;
 using Mistaken.EventManager.EventArgs;
 using UnityEngine;
@@ -53,7 +54,7 @@ namespace Mistaken.EventManager
         public void OnEnd(Player player = null)
         {
             Map.ClearBroadcasts();
-            if (!(player is null))
+            if (player is null)
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
             else
             {
@@ -63,7 +64,6 @@ namespace Mistaken.EventManager
             }
 
             this.DeInitiate();
-            Round.IsLocked = false;
         }
 
         /// <summary>
@@ -79,7 +79,6 @@ namespace Mistaken.EventManager
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
 
             this.DeInitiate();
-            Round.IsLocked = false;
         }
 
         /// <summary>
@@ -101,7 +100,6 @@ namespace Mistaken.EventManager
             }
 
             this.DeInitiate();
-            Round.IsLocked = false;
         }
 
         /// <summary>
@@ -295,12 +293,14 @@ namespace Mistaken.EventManager
         /// </summary>
         public void DeInitiate()
         {
+            Round.IsLocked = false;
             this.OnDeIni();
             Log.Info("Event Deactivated: " + this.Name);
             Log.Debug("Reinitiating modules", PluginHandler.Instance.Config.VerbouseOutput);
             Mistaken.API.Diagnostics.Module.EnableAllExcept(PluginHandler.Instance);
             Log.Debug("Modules reinitiated", PluginHandler.Instance.Config.VerbouseOutput);
-            EventManager.ActiveEvent = null;
+            EventManager.ActiveEvent = null; // Dodać tu gui
+            Timing.CallDelayed(10f, () => RoundRestarting.RoundRestart.InitiateRoundRestart());
         }
 
         /// <summary>

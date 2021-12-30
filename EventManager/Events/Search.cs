@@ -127,11 +127,10 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.NewRole != RoleType.Spectator)
-            {
-                ev.Player.SlowChangeRole(RoleType.ClassD, this.spawn);
-                Timing.CallDelayed(1f, () => ev.Player.AddItem(ItemType.Flashlight));
-            }
+            if (ev.NewRole == RoleType.Spectator)
+                return;
+            ev.Player.SlowChangeRole(RoleType.ClassD, this.spawn);
+            Timing.CallDelayed(1f, () => ev.Player.AddItem(ItemType.Flashlight));
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)

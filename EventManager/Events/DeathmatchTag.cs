@@ -31,7 +31,7 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             this.tickets["MTF"] = 0;

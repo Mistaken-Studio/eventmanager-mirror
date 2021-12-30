@@ -66,6 +66,8 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
+            if (ev.NewRole == RoleType.Spectator)
+                return;
             if (ev.NewRole == RoleType.Scp173)
                 Timing.CallDelayed(10f, () => ev.Player.Position = this.spawn);
         }

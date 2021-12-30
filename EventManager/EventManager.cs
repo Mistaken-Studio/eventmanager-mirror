@@ -21,8 +21,6 @@ namespace Mistaken.EventManager
     /// </summary>
     internal class EventManager : Module
     {
-        public const bool DNPN = true;
-
         /// <summary>
         /// Dictionary of loaded Events.
         /// </summary>
@@ -30,7 +28,7 @@ namespace Mistaken.EventManager
 
         public static readonly string Color = "#6B9ADF";
 
-        public static readonly string EMLB = $"[<color={Color}><b>Event Manager</b></color> {(DNPN ? $"<color={Color}>Test Build</color>" : string.Empty)}] ";
+        public static readonly string EMLB = $"[<color={Color}><b>Event Manager</b></color> {(PluginHandler.Instance.Config.Dnpn ? $"<color={Color}>Test Build</color>" : string.Empty)}] ";
 
         public static IEMEventClass ActiveEvent { get; set; }
 
@@ -118,7 +116,7 @@ namespace Mistaken.EventManager
 
         private void UpdateWinnersFile()
         {
-            var file = Directory.GetFiles(BasePath).FirstOrDefault(x => File.GetCreationTimeUtc(x).AddDays(PluginHandler.Instance.Config.NewWinnersFileDays) <= DateTime.UtcNow);
+            var file = Directory.GetFiles(BasePath).FirstOrDefault(x => File.GetCreationTimeUtc(x).AddDays(PluginHandler.Instance.Config.NewWinnersFileDays) >= DateTime.UtcNow);
             if (file == default)
             {
                 CurrentWinnersFile = Path.Combine(BasePath, $"winners - {DateTime.UtcNow.ToString("dd.MM.yyyy")} to {DateTime.UtcNow.AddDays(PluginHandler.Instance.Config.NewWinnersFileDays).ToString("dd.MM.yyyy")}.txt");
