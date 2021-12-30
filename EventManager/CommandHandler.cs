@@ -38,7 +38,7 @@ namespace Mistaken.EventManager
         {
             if (!EventManager.EventActive())
                 return (false, new string[] { "No event is on going" });
-            EventManager.ActiveEvent.OnEnd($"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
+            EventManager.ActiveEvent.OnEnd($"Anulowano event: <color={EventManager.Color}>{EventManager.ActiveEvent.Name}</color>");
             EventManager.ActiveEvent = null;
             return (true, new string[] { "Done" });
         }
@@ -109,6 +109,18 @@ namespace Mistaken.EventManager
             }
         }
 
+        public static (bool, string[]) PrintWinners(string[] args, Player sender)
+        {
+            var lines = File.ReadAllLines(EventManager.CurrentWinnersFile);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var content = lines[i].Split(';');
+                lines[i] = content[0] + " - " + content[2] + " wygranych eventów";
+            }
+
+            return (true, lines);
+        }
+
         /// <inheritdoc/>
         public override string Command => "EventManager";
 
@@ -155,6 +167,7 @@ namespace Mistaken.EventManager
             { "forceend", (args) => ForceEndCommand(args.arg, args.adm) },
             { "rwe", (args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.RWE }); } },
             { "setrwe", (args) => SetRWECommand(args.arg, args.adm) },
+            { "prtwin", (args) => PrintWinners(args.arg, args.adm) },
         };
 
         private string GetUsage()
@@ -168,7 +181,8 @@ namespace Mistaken.EventManager
                 "\n EventManager queue (event name) - displays the current queue of events or adds an event to the queue (if specified)" +
                 "\n EventManager get - gets the name of current event" +
                 "\n EventManager rwe - rounds without events" +
-                "\n EventManager setrwe [number] - sets rounds without events"
+                "\n EventManager setrwe [number] - sets rounds without events" +
+                "\n EventManager prtwin - prints a list of this 2 weeks event winners"
                 ;
         }
     }

@@ -57,7 +57,7 @@ namespace Mistaken.EventManager
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
             else
             {
-                Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
+                Map.Broadcast(10, $"{EventManager.EMLB} <color={EventManager.Color}>{player.Nickname}</color> wygrał!");
                 EMEvents.OnPlayerWinningEvent(new PlayerWinningEventEventArgs(player, this));
                 player.UpdateInWinnersFile();
             }
@@ -155,7 +155,7 @@ namespace Mistaken.EventManager
             Mistaken.API.Diagnostics.Module.DisableAllExcept(PluginHandler.Instance);
             Log.Debug("Deinitiated modules", PluginHandler.Instance.Config.VerbouseOutput);
             EventManager.ActiveEvent = this;
-            Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color=#6B9ADF>{this.Name}</color>");
+            Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color={EventManager.Color}>{this.Name}</color>");
             CharacterClassManager.LaterJoinEnabled = false;
             this.OnIni();
             if (this is ISpawnRandomItems)

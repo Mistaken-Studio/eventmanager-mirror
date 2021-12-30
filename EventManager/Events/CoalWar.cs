@@ -31,7 +31,7 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D_Spawn", "Walka <color=black>węglem</color>. <color=#6B9ADF>Ostatni żywy wygrywa</color>" },
+            { "D_Spawn", $"Walka <color=black>węglem</color>. <color={EventManager.Color}>Ostatni żywy wygrywa</color>" },
         };
 
         public bool ClearPrevious => true;
