@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
+using MEC;
+using Mistaken.API;
 using Mistaken.API.Diagnostics;
 
 namespace Mistaken.EventManager
@@ -36,10 +38,8 @@ namespace Mistaken.EventManager
             : base(p)
         {
             Instance = this;
-            this.LoadEvents();
             BasePath = this.SetBasePath(PluginHandler.Instance.Config.EMFolderPath);
-            if (!Directory.GetFiles(BasePath).Contains("winners.txt"))
-                File.Create(BasePath + @"\winners.txt");
+            this.LoadEvents();
         }
 
         /// <inheritdoc/>
@@ -74,28 +74,30 @@ namespace Mistaken.EventManager
         {
             this.Log.Info("Loading Events Started");
             foreach (Type t in System.Reflection.Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsClass && !x.IsAbstract && x.IsSubclassOf(typeof(IEMEventClass))))
-            {
                 this.PrepareEvent(Activator.CreateInstance(t) as IEMEventClass);
-            }
 
             this.Log.Info("Loading Events Completed");
         }
 
         internal static readonly string EMLB = $"[<color=#6B9ADF><b>Event Manager</b></color> {(DNPN ? "<color=#6B9ADF>Test Build</color>" : string.Empty)}] ";
 
-        internal static EventManager Instance { get; private set; }
-
         internal static Queue<IEMEventClass> EventQueue { get; set; } = new Queue<IEMEventClass>();
 
-        internal static string BasePath { get; private set; }
+        internal static ushort RWE { get; set; } = 0;
+
+        internal static EventManager Instance { get; private set; }
+
+        internal static string CurrentWinnersFile { get; set; }
+
+        private static string BasePath { get; set; }
 
         private string SetBasePath(string path)
         {
             string @string;
             if (string.IsNullOrEmpty(path))
-                @string = Paths.Plugins + @"\EventManager";
+                @string = Path.Combine(Paths.Plugins, "EventManager");
             else
-                @string = path + @"\EventManager";
+                @string = Path.Combine(path, "EventManager");
             this.Log.Debug("Set base path to: " + @string, PluginHandler.Instance.Config.VerbouseOutput);
             if (!Directory.Exists(@string))
             {
@@ -112,6 +114,18 @@ namespace Mistaken.EventManager
             return @string;
         }
 
+        private void UpdateWinnersFile()
+        {
+            var file = Directory.GetFiles(BasePath).FirstOrDefault(x => File.GetCreationTimeUtc(x).AddDays(PluginHandler.Instance.Config.NewWinnersFileDays) <= DateTime.UtcNow);
+            if (file == default)
+            {
+                CurrentWinnersFile = Path.Combine(BasePath, $"winners - {DateTime.UtcNow.ToString("dd.MM.yyyy")} to {DateTime.UtcNow.AddDays(PluginHandler.Instance.Config.NewWinnersFileDays).ToString("dd.MM.yyyy")}.txt");
+                File.Create(CurrentWinnersFile);
+            }
+            else
+                CurrentWinnersFile = file;
+        }
+
         private void PrepareEvent(IEMEventClass ev)
         {
             Events[ev.Id] = ev;
@@ -120,12 +134,15 @@ namespace Mistaken.EventManager
 
         private void Server_WaitingForPlayers()
         {
-            if (!EventActive() && EventQueue.TryDequeue(out var eventClass))
+            this.UpdateWinnersFile();
+            if (EventActive())
+                return;
+            if (EventQueue.TryDequeue(out var ev))
             {
-                this.Log.Debug(eventClass.Id, PluginHandler.Instance.Config.VerbouseOutput);
+                this.Log.Debug(ev.Id, PluginHandler.Instance.Config.VerbouseOutput);
                 try
                 {
-                    eventClass.Initiate();
+                    ev.Initiate();
                 }
                 catch (Exception ex)
                 {
@@ -136,13 +153,32 @@ namespace Mistaken.EventManager
             {
                 this.Log.Debug(EventQueue.Count, PluginHandler.Instance.Config.VerbouseOutput);
                 this.Log.Debug(EventActive(), PluginHandler.Instance.Config.VerbouseOutput);
+
+                if (!PluginHandler.Instance.Config.AutoEventsEnabled)
+                    return;
+                if (RWE < PluginHandler.Instance.Config.AutoEventsRounds)
+                    return;
+                Timing.CallDelayed(10f, () =>
+                {
+                    if (!EventActive() && RealPlayers.List.Count() > 5)
+                    {
+                        var evid = PluginHandler.Instance.Config.AutoEventsList[UnityEngine.Random.Range(0, PluginHandler.Instance.Config.AutoEventsList.Count)];
+                        if (Events.ContainsKey(evid))
+                        {
+                            Events[evid].Initiate();
+                            RWE = 0;
+                        }
+                        else
+                            this.Log.Error("Failed to find event with id: " + evid);
+                    }
+                });
             }
         }
 
         private void Server_RoundStarted()
         {
-            if (EventActive())
-                Map.Broadcast(5, EMLB + $"<color=#6B9ADF>{ActiveEvent.Name}</color>");
+            if (!EventActive())
+                RWE += 1;
         }
 
         private void Server_RestartingRound()
@@ -154,7 +190,7 @@ namespace Mistaken.EventManager
         private void Player_Verified(Exiled.Events.EventArgs.VerifiedEventArgs ev)
         {
             if (EventActive())
-                ev.Player.Broadcast(10, EMLB + $"Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
+                ev.Player.Broadcast(8, EMLB + $"Na serwerze obecnie trwa: <color=#6B9ADF>{ActiveEvent.Name}</color>");
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
@@ -169,14 +205,15 @@ namespace Mistaken.EventManager
         {
             if (!EventActive())
                 return;
-            var players = Mistaken.API.RealPlayers.List.Where(p => p.IsAlive && p.Id != ev.Target.Id && p.IsHuman).ToList();
+            var players = RealPlayers.List.Where(p => p.IsAlive && p.Id != ev.Target.Id && p.IsHuman).ToList();
             if (players.Count == 1 && ActiveEvent is IWinOnLastAlive)
                 ActiveEvent.OnEnd(players[0]);
             else if (players.Count == 0 && ActiveEvent is IEndOnNoAlive)
                 ActiveEvent.OnEnd(player: null);
-            if (ActiveEvent is IAnnouncePlayersAlive && players.Count > 1)
+            if (ActiveEvent is IAnnouncePlayersAlive yes && players.Count > 1)
             {
-                Map.ClearBroadcasts();
+                if (yes.ClearPrevious)
+                    Map.ClearBroadcasts();
                 Map.Broadcast(5, EMLB + $"Zostało {players.Count} <color=#6B9ADF>żywych</color>");
             }
         }

@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class OOoX : IEMEventClass
+    /*internal class OOoX : IEMEventClass
     {
         public override string Id => "ooox";
 
@@ -161,5 +161,5 @@ namespace Mistaken.EventManager.Events
                 this.winners.Remove(ev.Player);
             }
         }
-    }
+    }*/
 }

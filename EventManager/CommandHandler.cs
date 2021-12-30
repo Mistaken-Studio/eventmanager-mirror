@@ -11,6 +11,7 @@ using System.Linq;
 using CommandSystem;
 using Exiled.API.Features;
 using Mistaken.API.Commands;
+using Mistaken.API.Extensions;
 using Mistaken.EventManager.EventArgs;
 
 namespace Mistaken.EventManager
@@ -18,18 +19,25 @@ namespace Mistaken.EventManager
     [CommandSystem.CommandHandler(typeof(CommandSystem.RemoteAdminCommandHandler))]
     internal class CommandHandler : IBetterCommand, IPermissionLocked
     {
-        /*public static (bool, string[]) SetRWEventCommand(Player admin, string[] args)
+        public static (bool, string[]) SetRWECommand(string[] args, Player admin)
         {
-            if (!admin.CheckPermission(EventManager.singleton.Name + ".setrwevent")) return (false, new string[] { "You can't use this command. No permission!" });
-            if (args.Length == 1 || args[1] == "") return (false, new string[] { "Wrong args", "EventManager setrwevent [amount]" });
-            if (int.Parse(args[1]) < 0) return (false, new string[] { "Number has to be non-negative int" });
-            EventManager.rounds_without_event = int.Parse(args[1]);
+            if (!admin.CheckPermission(EventManager.Instance.Name + ".setrwevent"))
+                return (false, new string[] { "You can't use this command. No permission!" });
+            if (args.Length == 0)
+                return (false, new string[] { "Wrong args", "EventManager setrwevent [amount]" });
+            if (args[1] == string.Empty)
+                return (false, new string[] { "Wrong args", "EventManager setrwevent [amount]" });
+            var value = short.Parse(args[1]);
+            if (value < 0)
+                return (false, new string[] { "Number has to be non-negative short" });
+            EventManager.RWE = (ushort)value;
             return (true, new string[] { "Done" });
-        }*/
+        }
 
         public static (bool, string[]) ForceEndCommand(string[] args, Player sender)
         {
-            if (EventManager.ActiveEvent == null) return (false, new string[] { "No event is on going" });
+            if (!EventManager.EventActive())
+                return (false, new string[] { "No event is on going" });
             EventManager.ActiveEvent.OnEnd($"Anulowano event: <color=#6B9ADF>{EventManager.ActiveEvent.Name}</color>");
             EventManager.ActiveEvent = null;
             return (true, new string[] { "Done" });
@@ -37,11 +45,13 @@ namespace Mistaken.EventManager
 
         public static (bool, string[]) ForceCommand(string[] args, Player sender)
         {
-            if (Mistaken.API.RealPlayers.List.Count() < 4 && !EventManager.DNPN) return (false, new string[] { "You can't use this command. Not enough players!" });
-            else if (EventManager.ActiveEvent != null) return (false, new string[] { "You can't forcestack events" });
+            if (Mistaken.API.RealPlayers.List.Count() < 4 && !EventManager.DNPN)
+                return (false, new string[] { "You can't use this command. Not enough players!" });
+            else if (EventManager.EventActive())
+                return (false, new string[] { "You can't forcestack events" });
             var name = string.Join(" ", args).ToLower();
 
-            foreach (var item in EventManager.Events.ToArray())
+            foreach (var item in EventManager.Events)
             {
                 if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
                 {
@@ -62,7 +72,7 @@ namespace Mistaken.EventManager
                 "Events:",
             };
 
-            foreach (var item in EventManager.Events.ToArray())
+            foreach (var item in EventManager.Events)
                 tor.Add($"<color=green>{item.Value.Id}</color>: <color=yellow>{item.Value.Name}</color> <color=red>|</color> {item.Value.Description}");
 
             return (true, tor.ToArray());
@@ -72,7 +82,8 @@ namespace Mistaken.EventManager
         {
             if (args.Length == 0)
             {
-                if (EventManager.EventQueue.Count == 0) return (true, new string[] { "Queue is empty" });
+                if (EventManager.EventQueue.Count == 0)
+                    return (true, new string[] { "Queue is empty" });
                 var t = new List<string>();
                 foreach (var ev in EventManager.EventQueue)
                 {
@@ -85,7 +96,7 @@ namespace Mistaken.EventManager
             {
                 var name = string.Join(" ", args).ToLower();
 
-                foreach (var item in EventManager.Events.ToArray())
+                foreach (var item in EventManager.Events)
                 {
                     if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
                     {
@@ -96,13 +107,6 @@ namespace Mistaken.EventManager
 
                 return (false, new string[] { "Event not found" });
             }
-        }
-
-        public static (bool, string[]) ClearWinnersFile(string[] args, Player sender)
-        {
-            File.WriteAllText(EventManager.BasePath + @"\winners.txt", string.Empty);
-
-            return (true, new string[] { "File cleared" });
         }
 
         /// <inheritdoc/>
@@ -124,9 +128,7 @@ namespace Mistaken.EventManager
         {
             success = false;
             if (args.Length == 0)
-            {
                 return new string[] { this.GetUsage() };
-            }
 
             var admin = Player.Get(sender);
             string cmd = args[0].ToLower();
@@ -137,27 +139,22 @@ namespace Mistaken.EventManager
                 return retuned.message;
             }
             else
-            {
                 return new string[] { "Unknown Command", this.GetUsage() };
-            }
         }
 
-        private readonly Dictionary<string, Func<(string[], Player), (bool isSuccess, string[] message)>> subcommands = new Dictionary<string, Func<(string[], Player), (bool, string[])>>()
+        private readonly Dictionary<string, Func<(string[], Player), (bool isSuccess, string[] message)>> subcommands = new Dictionary<string, Func<(string[] arg, Player adm), (bool, string[])>>()
         {
-            { "q", (args) => QueueCommand(args.Item1, args.Item2) },
-            { "queue", (args) => QueueCommand(args.Item1, args.Item2) },
+            { "q", (args) => QueueCommand(args.arg, args.adm) },
+            { "queue", (args) => QueueCommand(args.arg, args.adm) },
             { "g", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
             { "get", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
-            { "l", (args) => ListCommand(args.Item1, args.Item2) },
-            { "list", (args) => ListCommand(args.Item1, args.Item2) },
-            { "f", (args) => ForceCommand(args.Item1, args.Item2) },
-            { "force", (args) => ForceCommand(args.Item1, args.Item2) },
-            { "forceend", (args) => ForceEndCommand(args.Item1, args.Item2) },
-            { "clearwinners", (args) => ClearWinnersFile(args.Item1, args.Item2) },
-            { "clw", (args) => ClearWinnersFile(args.Item1, args.Item2) },
-
-            // {"rwe", (ply,args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.rounds_without_event }); } },
-            // {"setrwevent", (ply, args) => SetRWEventCommand(ply,args) },
+            { "l", (args) => ListCommand(args.arg, args.adm) },
+            { "list", (args) => ListCommand(args.arg, args.adm) },
+            { "f", (args) => ForceCommand(args.arg, args.adm) },
+            { "force", (args) => ForceCommand(args.arg, args.adm) },
+            { "forceend", (args) => ForceEndCommand(args.arg, args.adm) },
+            { "rwe", (args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.RWE }); } },
+            { "setrwe", (args) => SetRWECommand(args.arg, args.adm) },
         };
 
         private string GetUsage()
@@ -170,9 +167,8 @@ namespace Mistaken.EventManager
                 "\n EventManager forceend - deinitializes current event" +
                 "\n EventManager queue (event name) - displays the current queue of events or adds an event to the queue (if specified)" +
                 "\n EventManager get - gets the name of current event" +
-
-                // "\n EventManager rwe - rounds without event" +
-                "\n EventManager setrwevent [number] - sets rounds without event"
+                "\n EventManager rwe - rounds without events" +
+                "\n EventManager setrwe [number] - sets rounds without events"
                 ;
         }
     }

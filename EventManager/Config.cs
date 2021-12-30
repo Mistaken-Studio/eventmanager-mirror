@@ -29,10 +29,22 @@ namespace Mistaken.EventManager
         public string EMFolderPath { get; set; }
 
         /// <summary>
+        /// Gets or sets a value after which a new winners file is created.
+        /// </summary>
+        [Description("Sets the amount of days after which a new winners file is created")]
+        public ushort NewWinnersFileDays { get; set; } = 14;
+
+        /// <summary>
         /// Gets or sets a value indicating whether AutoEvents should be enabled.
         /// </summary>
         [Description("If true then Events will be initiated automatically once a while")]
         public bool AutoEventsEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value after which how many rounds without events to start an event.
+        /// </summary>
+        [Description("Sets the amount of rounds after which AutoEvents will initialize an event")]
+        public ushort AutoEventsRounds { get; set; } = 4;
 
         /// <summary>
         /// Gets or sets a list of automatic events.
