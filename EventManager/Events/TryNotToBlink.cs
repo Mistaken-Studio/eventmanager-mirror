@@ -7,18 +7,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Interactables.Interobjects.DoorUtils;
-using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
+using MEC;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class TryNotToBlink : IEMEventClass,
-        IWinOnLastAlive
+    internal class TryNotToBlink : IEMEventClass, IWinOnLastAlive
     {
-        public override string Id => "trynottoblink";
+        public override string Id => "tntb";
 
         public override string Description => "The name explains it all :)";
 
@@ -31,29 +27,19 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
-            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
-        }
-
-        public override void OnDeIni()
-        {
-            Mistaken.API.Utilities.Map.Blackout.Enabled = false;
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
-            Exiled.Events.Handlers.Player.Dying -= this.Player_Dying;
-        }
-
-        private void Server_RoundStarted()
-        {
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
+            Exiled.Events.Handlers.Player.Died += this.Player_Died;
             foreach (var door in Map.Doors)
             {
-                var doortype = door.Type;
-                if (doortype == DoorType.CheckpointLczA || doortype == DoorType.CheckpointLczB)
+                if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
+                {
                     door.ChangeLock(DoorLockType.DecontLockdown);
+                    door.IsOpen = true;
+                }
                 else
                 {
                     door.IsOpen = true;
@@ -61,33 +47,42 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (var player in RealPlayers.RandomList)
-            {
-                if (player.Side != Side.Scp) player.Role = RoleType.ClassD;
-                else player.Role = RoleType.Scp173;
-            }
+            foreach (var e in Map.Lifts)
+                e.Network_locked = true;
+        }
 
-            Cassie.Message("LIGHT SYSTEM ERRROR . LIGHTS OUT", false, true);
-            Mistaken.API.Utilities.Map.Blackout.Delay = 99999;
-            Mistaken.API.Utilities.Map.Blackout.Length = 99999;
-            Mistaken.API.Utilities.Map.Blackout.Enabled = true;
+        public override void OnDeIni()
+        {
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
+            Exiled.Events.Handlers.Player.Died -= this.Player_Died;
+        }
+
+        private void Server_RoundStarted()
+        {
+            Cassie.Message("LIGHT SYSTEM ERROR . LIGHTS OUT", false, true);
+            Map.TurnOffAllLights(float.MaxValue);
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            MEC.Timing.CallDelayed(1f, () =>
+            if (ev.NewRole == RoleType.Spectator)
+                return;
+            Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Role == RoleType.ClassD) ev.Player.AddItem(ItemType.Flashlight);
+                if (ev.Player.Team == Team.SCP)
+                    ev.Player.SlowChangeRole(RoleType.Scp173);
+                else
+                {
+                    ev.Player.SlowChangeRole(RoleType.ClassD);
+                    Timing.CallDelayed(0.5f, () => ev.Player.AddItem(ItemType.Flashlight));
+                }
             });
         }
 
-        private void Player_Dying(Exiled.Events.EventArgs.DyingEventArgs ev)
+        private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            var role = ev.Target.Role;
-            MEC.Timing.CallDelayed(1f, () =>
-            {
-                if (role == RoleType.ClassD) ev.Target.Role = RoleType.Scp173;
-            });
+            ev.Target.SlowChangeRole(RoleType.Scp173);
         }
     }
 }

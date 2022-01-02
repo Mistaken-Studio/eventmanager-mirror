@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Mistaken.EventManager.EventCreator
+namespace Mistaken.EventManager
 {
     /// <summary>
     /// Spawns random items on start.

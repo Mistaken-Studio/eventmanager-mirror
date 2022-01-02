@@ -14,15 +14,16 @@ using InventorySystem.Items.ThrowableProjectiles;
 using MEC;
 using Mirror;
 using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
 using PlayerStatsSystem;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
+#pragma warning disable SA1402
+#pragma warning disable SA1313
     internal class CoalWar : IEMEventClass, IWinOnLastAlive, IAnnouncePlayersAlive
     {
-        public override string Id => "CoWar";
+        public override string Id => "cowar";
 
         public override string Description => "U are all naughty.. or are you?";
 
@@ -30,7 +31,7 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "D_Spawn", "Walka <color=black>węglem</color>.. Takie czarne <color=yellow>złoto</color> w tych czasach.. <color=#6B9ADF>Ostatni żywy wygrywa</color>" },
+            { "D_Spawn", $"Walka <color=black>węglem</color>. <color={EventManager.Color}>Ostatni żywy wygrywa</color>" },
         };
 
         public bool ClearPrevious => true;
@@ -43,8 +44,6 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
-
-            // Exiled.Events.Handlers.Player.Verified += this.Player_Verified;
         }
 
         public override void OnDeIni()
@@ -53,43 +52,25 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
-
-            // Exiled.Events.Handlers.Player.Verified -= this.Player_Verified;
-            this.roundStarted = false;
         }
-
-        private bool roundStarted = false;
 
         private void Server_RoundStarted()
         {
-            this.roundStarted = true;
-            Timing.RunCoroutine(this.UpdateCoal());
+            EventManager.Instance.RunCoroutine(this.UpdateCoal(), "coalwar_updatecoal");
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
             if (ev.NewRole != RoleType.Spectator)
-            {
-                ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
-                ev.Player.Broadcast(8, EventManager.EMLB + " " + this.Translations["D_Spawn"], shouldClearPrevious: true);
-            }
+                return;
+
+            ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
+            ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Spawn"], shouldClearPrevious: true);
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
         {
             ev.IsAllowed = false;
-        }
-
-        private void Player_Verified(Exiled.Events.EventArgs.VerifiedEventArgs ev)
-        {
-            if (this.roundStarted && Round.ElapsedTime.TotalSeconds < 30)
-            {
-                Timing.CallDelayed(1f, () =>
-                {
-                    ev.Player.SlowChangeRole(RoleType.ClassD, new Vector3(28f, 990f, -59f));
-                    ev.Player.Broadcast(8, EventManager.EMLB + " " + this.Translations["D_Spawn"], shouldClearPrevious: true);
-                });
-            }
         }
 
         private IEnumerator<float> UpdateCoal()
@@ -103,9 +84,6 @@ namespace Mistaken.EventManager.Events
             }
         }
     }
-
-#pragma warning disable SA1313
-#pragma warning disable SA1402
 
     [HarmonyPatch(typeof(ThrowableItem), "ServerThrow", new Type[] { typeof(float), typeof(float), typeof(Vector3), typeof(Vector3) })]
     internal class Patch2
@@ -141,21 +119,18 @@ namespace Mistaken.EventManager.Events
     {
         private EffectGrenade coal;
         private bool used;
-        private Vector3 lastPosition;
-        private float distance;
+        private Vector3 startPosition;
 
         private void Awake()
         {
             this.coal = this.GetComponent<EffectGrenade>();
-            this.lastPosition = this.coal.transform.position;
+            this.startPosition = this.coal.transform.position;
+            this.coal._fuseTime = 10f;
         }
 
         private void FixedUpdate()
         {
-            this.distance += Vector3.Distance(this.coal.transform.position, this.lastPosition);
-            this.lastPosition = this.coal.transform.position;
-
-            foreach (var obj in Physics.OverlapSphere(this.coal.transform.position, 0.15f))
+            foreach (var obj in Physics.OverlapSphere(this.coal.transform.position, 0.25f))
             {
                 if (obj.TryGetComponent<IDestructible>(out var p))
                 {
@@ -164,10 +139,11 @@ namespace Mistaken.EventManager.Events
 
                     if (!this.used)
                     {
-                        float damage = 10f;
+                        var distance = Vector3.Distance(this.coal.transform.position, this.startPosition);
+                        float damage = 35f;
                         this.used = true;
-                        if (this.distance > 8f && this.distance < 60f)
-                            damage = this.distance * 3.2f;
+                        if (distance > 8f)
+                            damage = distance * 5.5f;
 
                         p.Damage(0f, new CustomReasonDamageHandler("Skill issue", damage), this.transform.position);
                         this.coal.ServerFuseEnd();

@@ -6,54 +6,56 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Exiled.API.Enums;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
+using Mistaken.API.Shield;
 
 namespace Mistaken.EventManager.Events
 {
+#pragma warning disable SA1402
     internal class Titan : IEMEventClass
     {
         public override string Id => "titan";
 
-        public override string Description => "Kill the powerfull titan";
+        public override string Description => "Kill the powerful titan";
 
         public override string Name => "Titan";
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "T", "Jesteś <color=green>Tytanem</color>. Twoim zadaniem jest rozprawienie się z <color=blue>MFO</color> atakujących Ciebie." },
-            { "M", "Waszym zadaniem (<color=blue>MFO</color>) jest zabicie <color=green>Tytana</color>, który znajduje się na spawnie CI. Uważajcie!" },
+            { "T_Info", "Jesteś <color=green>Tytanem</color>. Twoim zadaniem jest rozprawienie się z <color=blue>MFO</color> atakujących Ciebie." },
+            { "MTF_Info", "Waszym zadaniem (<color=blue>MFO</color>) jest zabicie <color=green>Tytana</color>, który znajduje się na spawnie CI. Uważajcie!" },
         };
 
         public override void OnIni()
         {
+            Mistaken.API.Utilities.Map.RespawnLock = true;
+            Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.Hurting += this.Player_Hurting;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
+            foreach (var e in Map.Lifts)
+            {
+                var etype = e.Type();
+                if (etype == ElevatorType.GateA || etype == ElevatorType.GateB)
+                    e.Network_locked = true;
+            }
         }
 
         public override void OnDeIni()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.Hurting -= this.Player_Hurting;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
         }
 
         private void Server_RoundStarted()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
-            Round.IsLocked = true;
-            foreach (var e in Map.Lifts)
-            {
-                if (e.elevatorName.ToUpper().StartsWith("GATE"))
-                    e.Network_locked = true;
-            }
-
             var players = RealPlayers.List.ToList();
             var titan = players[UnityEngine.Random.Range(0, players.Count())];
             players.Remove(titan);
-            titan.SlowChangeRole(RoleType.ChaosRifleman);
+            titan.SlowChangeRole(RoleType.ChaosMarauder);
+            titan.Broadcast(8, EventManager.EMLB + this.Translations["T_Info"]);
             foreach (var player in players)
             {
                 switch (UnityEngine.Random.Range(0, 3))
@@ -69,29 +71,30 @@ namespace Mistaken.EventManager.Events
                         break;
                 }
 
-                player.Broadcast(10, EventManager.EMLB + this.Translations["M"]);
+                player.Broadcast(8, EventManager.EMLB + this.Translations["MTF_Info"]);
             }
 
-            MEC.Timing.CallDelayed(2, () =>
-            {
-                titan.Broadcast(8, EventManager.EMLB + this.Translations["T"]);
-                titan.Health *= players.Count() + 1;
-                titan.ArtificialHealth = (players.Count() + 1) * 30;
-            });
+            TitanShield.Ini<TitanShield>(titan);
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            var players = RealPlayers.List.Where(x => x != ev.Target);
-            if (players.Count(x => x.Team == Team.MTF) == 0) this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
-            else if (players.Count(x => x.Role == RoleType.ChaosRifleman) == 0) this.OnEnd("<color=blue>MFO</color> wygrywa!");
-            else if (ev.Target.Team == Team.MTF) players.First(x => x.Role == RoleType.ChaosRifleman).ArtificialHealth += 8 * players.Count();
+            var players = RealPlayers.List.Where(x => x.IsAlive);
+            if (players.Count(x => x.Team == Team.MTF) == 0)
+                this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
+            else if (players.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
+                this.OnEnd("<color=blue>MFO</color> wygrywa!");
         }
+    }
 
-        private void Player_Hurting(Exiled.Events.EventArgs.HurtingEventArgs ev)
-        {
-            // if (ev.DamageType == DamageTypes.Logicer && ev.Amount > 30) ev.Amount = 150;
-            // else if (ev.DamageType == DamageTypes.Logicer) ev.Amount = 51;
-        }
+    internal class TitanShield : Shield
+    {
+        protected override float MaxShield => 1000;
+
+        protected override float ShieldRechargeRate => 25;
+
+        protected override float ShieldEffectivnes => 1;
+
+        protected override float TimeUntilShieldRecharge => 5;
     }
 }

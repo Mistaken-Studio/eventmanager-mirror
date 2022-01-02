@@ -10,11 +10,12 @@ using System.Linq;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using InventorySystem.Items.Firearms.Ammo;
+using MEC;
 using Mistaken.API;
 using Mistaken.EventManager.EventArgs;
 using UnityEngine;
 
-namespace Mistaken.EventManager.EventCreator
+namespace Mistaken.EventManager
 {
     /// <summary>
     /// Class for handling Events.
@@ -53,21 +54,16 @@ namespace Mistaken.EventManager.EventCreator
         public void OnEnd(Player player = null)
         {
             Map.ClearBroadcasts();
-            if (player == null)
+            if (player is null)
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
             else
             {
-                Map.Broadcast(10, $"{EventManager.EMLB} <color=#6B9ADF>{player.Nickname}</color> wygrał!");
+                Map.Broadcast(10, $"{EventManager.EMLB} <color={EventManager.Color}>{player.Nickname}</color> wygrał!");
                 EMEvents.OnPlayerWinningEvent(new PlayerWinningEventEventArgs(player, this));
-                if (!player.RemoteAdminAccess)
-                {
-                    var lines = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
-                    File.AppendAllLines(EventManager.BasePath + @"\winners.txt", new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2] + 1) : 1)}" });
-                }
+                player.UpdateInWinnersFile();
             }
 
             this.DeInitiate();
-            Round.IsLocked = false;
         }
 
         /// <summary>
@@ -81,19 +77,29 @@ namespace Mistaken.EventManager.EventCreator
                 Map.Broadcast(10, $"{EventManager.EMLB} {customWinText}");
             else
                 Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
+
             this.DeInitiate();
-            Round.IsLocked = false;
         }
 
         /// <summary>
-        /// Ends Event on last alive of certian class.
+        /// Ends Event.
         /// </summary>
-        /// <param name="role">Players with that role to count.</param>
-        public void EndOnOneAliveOf(RoleType role = RoleType.ClassD)
+        /// <param name="customWinText">Custom text displayed at the end of the Event.</param>
+        /// <param name="player">Winner of the event.</param>
+        public void OnEnd(string customWinText, Player player)
         {
-            var players = RealPlayers.List.Where(x => x.Role == role).ToArray();
-            if (players.Length == 1)
-                this.OnEnd(players[0]);
+            Map.ClearBroadcasts();
+            if (!string.IsNullOrEmpty(customWinText))
+                Map.Broadcast(10, $"{EventManager.EMLB} {customWinText}");
+            else
+                Map.Broadcast(10, $"{EventManager.EMLB} Nikt nie wygrał");
+            if (!(player is null))
+            {
+                EMEvents.OnPlayerWinningEvent(new PlayerWinningEventEventArgs(player, this));
+                player.UpdateInWinnersFile();
+            }
+
+            this.DeInitiate();
         }
 
         /// <summary>
@@ -110,9 +116,9 @@ namespace Mistaken.EventManager.EventCreator
                     {
                         switch (rand)
                         {
-                            case 1:
+                            case 0:
                                 return RoleType.ChaosRepressor;
-                            case 2:
+                            case 1:
                                 return RoleType.ChaosMarauder;
                             default:
                                 return RoleType.ChaosRifleman;
@@ -123,9 +129,9 @@ namespace Mistaken.EventManager.EventCreator
                     {
                         switch (rand)
                         {
-                            case 1:
+                            case 0:
                                 return RoleType.NtfSergeant;
-                            case 2:
+                            case 1:
                                 return RoleType.NtfCaptain;
                             default:
                                 return RoleType.NtfPrivate;
@@ -142,27 +148,27 @@ namespace Mistaken.EventManager.EventCreator
         /// </summary>
         public void Initiate()
         {
+            Log.Info("Event Initiated: " + this.Name);
             Log.Debug("Deinitiating modules", PluginHandler.Instance.Config.VerbouseOutput);
             Mistaken.API.Diagnostics.Module.DisableAllExcept(PluginHandler.Instance);
             Log.Debug("Deinitiated modules", PluginHandler.Instance.Config.VerbouseOutput);
             EventManager.ActiveEvent = this;
-            Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color=#6B9ADF>{this.Name}</color>");
+            Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color={EventManager.Color}>{this.Name}</color>");
             CharacterClassManager.LaterJoinEnabled = false;
             this.OnIni();
             if (this is ISpawnRandomItems)
             {
                 foreach (var item in Map.Rooms)
                 {
-                    int rand = UnityEngine.Random.Range(0, 14);
-                    switch (rand)
+                    switch (UnityEngine.Random.Range(0, 14))
                     {
                         case 0:
                             {
                                 new Firearm(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 24;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 24;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -170,9 +176,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 36;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 36;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -180,9 +186,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunRevolver).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 16;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 16;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -190,9 +196,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 60;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 60;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -200,9 +206,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 100;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 100;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -210,9 +216,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 80;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 80;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -220,9 +226,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunAK).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 70;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 70;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -230,9 +236,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunShotgun).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 28;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 28;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -240,9 +246,9 @@ namespace Mistaken.EventManager.EventCreator
                             {
                                 new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
-                                var ammo = new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up);
-                                ((AmmoPickup)ammo.Base).SavedAmmo = 200;
-                                ((AmmoPickup)ammo.Base).NetworkSavedAmmo = ((AmmoPickup)ammo.Base).SavedAmmo;
+                                var ammo = (AmmoPickup)new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
+                                ammo.SavedAmmo = 200;
+                                ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
                             }
 
@@ -287,12 +293,14 @@ namespace Mistaken.EventManager.EventCreator
         /// </summary>
         public void DeInitiate()
         {
+            Round.IsLocked = false;
             this.OnDeIni();
-            Log.Debug("Event Deactivated", PluginHandler.Instance.Config.VerbouseOutput);
+            Log.Info("Event Deactivated: " + this.Name);
             Log.Debug("Reinitiating modules", PluginHandler.Instance.Config.VerbouseOutput);
             Mistaken.API.Diagnostics.Module.EnableAllExcept(PluginHandler.Instance);
             Log.Debug("Modules reinitiated", PluginHandler.Instance.Config.VerbouseOutput);
-            EventManager.ActiveEvent = null;
+            EventManager.ActiveEvent = null; // Dodać tu gui
+            Timing.CallDelayed(10f, () => RoundRestarting.RoundRestart.InitiateRoundRestart());
         }
 
         /// <summary>

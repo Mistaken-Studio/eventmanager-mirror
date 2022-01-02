@@ -44,6 +44,7 @@
     <Reference Include="Mistaken.RoundLogger" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.RoundLogger.dll" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(MISTAKEN_REFERENCES)\UnityEngine.CoreModule.dll" />
     <Reference Include="UnityEngine.PhysicsModule" HintPath="$(MISTAKEN_REFERENCES)\UnityEngine.PhysicsModule.dll" />
+    <Reference Include="NorthwoodLib" HintPath="$(MISTAKEN_REFERENCES)\NorthwoodLib.dll" />
     <Reference Include="Mirror" HintPath="$(MISTAKEN_REFERENCES)\Mirror.dll" />
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(MISTAKEN_REFERENCES)\Assembly-CSharp-firstpass.dll" />
     <Reference Include="Assembly-CSharp-Publicized" HintPath="$(MISTAKEN_REFERENCES)\Assembly-CSharp-Publicized.dll" />
@@ -64,17 +65,14 @@
     <Compile Include="EventManager.cs" />
     <Compile Include="Events\Achtung.cs" />
     <Compile Include="Events\BlackDeath.cs" />
-    <Compile Include="Events\Blackout.cs" />
     <Compile Include="Events\CoalWar.cs" />
     <Compile Include="Events\OOoX.cs" />
     <Compile Include="Events\WDB.cs" />
     <Compile Include="Events\Blank.cs" />
-    <Compile Include="Events\CodeWhite.cs" />
     <Compile Include="Events\CTF.cs" />
     <Compile Include="Events\DBoiBattleRoyal.cs" />
     <Compile Include="Events\DBoiBattleRoyalMicroHid.cs" />
     <Compile Include="Events\DeathmatchTag.cs" />
-    <Compile Include="Events\Fight173.cs" />
     <Compile Include="Events\Hide.cs" />
     <Compile Include="Events\HotPeanut.cs" />
     <Compile Include="Events\Morbus.cs" />

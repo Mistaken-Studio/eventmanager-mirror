@@ -4,15 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using MEC;
 using Mistaken.API;
-using Mistaken.EventManager.EventCreator;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
@@ -21,7 +19,7 @@ namespace Mistaken.EventManager.Events
     {
         public override string Id => "dmt";
 
-        public override string Description => "Blank event";
+        public override string Description => "Deathmatch";
 
         public override string Name => "DeathmatchTag";
 
@@ -33,37 +31,20 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
-            MapGeneration.InitiallySpawnedItems.Singleton.ClearAll();
-            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
-            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-        }
-
-        public override void OnDeIni()
-        {
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-            Exiled.Events.Handlers.Player.Dying -= this.Player_Dying;
-            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
-        }
-
-        private readonly Dictionary<string, int> tickets = new Dictionary<string, int>()
-        {
-            { "CI", 0 },
-            { "MTF", 0 },
-        };
-
-        private void Server_RoundStarted()
-        {
-            this.tickets["MTF"] = 0;
-            this.tickets["CI"] = 0;
+            Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
+            this.tickets["MTF"] = 0;
+            this.tickets["CI"] = 0;
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.Died += this.Player_Died;
+            Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
+            Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             foreach (var door in Map.Doors)
             {
-                var doorType = door.Type;
-                if (doorType == DoorType.GateA || doorType == DoorType.GateB)
+                if (door.Type == DoorType.GateA || door.Type == DoorType.GateB)
                     door.ChangeLock(DoorLockType.AdminCommand);
-                else if (doorType == DoorType.CheckpointEntrance)
+                else if (door.Type == DoorType.CheckpointEntrance)
                 {
                     door.ChangeLock(DoorLockType.DecontEvacuate);
                     door.IsOpen = true;
@@ -76,7 +57,24 @@ namespace Mistaken.EventManager.Events
                 if (elevatorType == ElevatorType.LczA || elevatorType == ElevatorType.LczB)
                     e.Network_locked = true;
             }
+        }
 
+        public override void OnDeIni()
+        {
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Player.Died -= this.Player_Died;
+            Exiled.Events.Handlers.Player.Dying -= this.Player_Dying;
+            Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
+        }
+
+        private readonly Dictionary<string, int> tickets = new Dictionary<string, int>()
+        {
+            { "CI", 0 },
+            { "MTF", 0 },
+        };
+
+        private void Server_RoundStarted()
+        {
             int i = 0;
             foreach (var player in RealPlayers.RandomList)
             {
@@ -95,16 +93,24 @@ namespace Mistaken.EventManager.Events
                             break;
                     }
 
-                    player.Broadcast(10, EventManager.EMLB + this.Translations["MTF"]);
+                    player.Broadcast(8, EventManager.EMLB + this.Translations["MTF"]);
                 }
                 else
                 {
                     player.SlowChangeRole(this.RandomTeamRole(Team.CHI), RoleType.FacilityGuard.GetRandomSpawnProperties().Item1);
-                    player.Broadcast(10, EventManager.EMLB + this.Translations["CI"]);
+                    player.Broadcast(8, EventManager.EMLB + this.Translations["CI"]);
                 }
 
                 i++;
             }
+        }
+
+        private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
+        {
+            if (this.tickets["MTF"] >= 25 || RealPlayers.Get(Team.CHI).Count() == 0)
+                this.OnEnd("<color=blue>MFO</color> wygrywa!");
+            else if (this.tickets["CI"] >= 25 || RealPlayers.Get(Team.MTF).Count() == 0)
+                this.OnEnd("<color=green>CI</color> wygrywa!");
         }
 
         private void Player_Dying(Exiled.Events.EventArgs.DyingEventArgs ev)
@@ -116,12 +122,8 @@ namespace Mistaken.EventManager.Events
                     this.tickets["MTF"] += 1;
                 else
                     this.tickets["CI"] += 1;
-                if (this.tickets["MTF"] >= 35 || RealPlayers.List.Count(x => x != ev.Target && x.Role == RoleType.ChaosRifleman) == 0)
-                    this.OnEnd("<color=blue>MFO</color> wygrywa!");
-                else if (this.tickets["CI"] >= 35 || RealPlayers.List.Count(x => x != ev.Target && x.Role == RoleType.NtfSergeant) == 0)
-                    this.OnEnd("<color=green>CI</color> wygrywa!");
 
-                ev.Target.Broadcast(5, EventManager.EMLB + "Za chwilę się odrodzisz!");
+                ev.Target.Broadcast(5, EventManager.EMLB + "Za chwilę się odrodzisz...");
                 MEC.Timing.CallDelayed(5f, () =>
                 {
                     Vector3 respPoint;
@@ -150,8 +152,11 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            if (ev.Player.Team == Team.MTF && ev.Player.Role != RoleType.NtfPrivate)
-                MEC.Timing.CallDelayed(1f, () => ev.Player.RemoveItem(ev.Player.Items.First(x => x.Type == ItemType.GrenadeHE)));
+            Timing.CallDelayed(1f, () =>
+            {
+                if (ev.Player.Team == Team.MTF)
+                    ev.Player.RemoveItem(ev.Player.Items.FirstOrDefault(x => x.Type == ItemType.GrenadeHE));
+            });
         }
     }
 }

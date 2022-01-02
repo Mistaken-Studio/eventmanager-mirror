@@ -12,9 +12,7 @@ using PlayerStatsSystem;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Morbus :
-        EventCreator.IEMEventClass,
-        EventCreator.ISpawnRandomItems
+    internal class Morbus : IEMEventClass, ISpawnRandomItems
     {
         public override string Id => "morbus";
 
@@ -30,6 +28,9 @@ namespace Mistaken.EventManager.Events
 
         public override void OnIni()
         {
+            LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
+            Mistaken.API.Utilities.Map.RespawnLock = true;
+            Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Map.GeneratorActivated += this.Map_GeneratorActivated;
@@ -52,9 +53,6 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
-            Round.IsLocked = true;
             Map.TurnOffAllLights(float.MaxValue);
             var players = RealPlayers.List.ToList();
             this.mother = players[UnityEngine.Random.Range(0, players.Count)];
