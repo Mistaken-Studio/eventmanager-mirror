@@ -20,7 +20,7 @@ namespace Mistaken.EventManager
     internal static class Extensions
     {
         /// <summary>
-        /// Waits 1s, changes role, waits 1s, sets position if not default.
+        /// Waits 0.1s, changes role, waits 1s, sets position if not default.
         /// </summary>
         /// <param name="player">player.</param>
         /// <param name="role">role.</param>

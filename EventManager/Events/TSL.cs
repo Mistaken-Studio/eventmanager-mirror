@@ -115,7 +115,7 @@ namespace Mistaken.EventManager.Events
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Patch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Scp914UpgradePatch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
@@ -785,7 +785,7 @@ namespace Mistaken.EventManager.Events
     }
 
     [HarmonyPatch(typeof(Scp914Upgrader), "Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) })]
-    internal class Patch
+    internal class Scp914UpgradePatch
     {
         public static bool Prefix(Collider[] intake, Vector3 moveVector, Scp914Mode mode, Scp914KnobSetting setting)
         {

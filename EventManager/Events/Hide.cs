@@ -77,12 +77,16 @@ namespace Mistaken.EventManager.Events
 
             Timing.CallDelayed(25f, () =>
             {
+                if (!this.Active)
+                    return;
                 scpSpawn.ChangeLock(DoorLockType.AdminCommand);
                 scpSpawn.IsOpen = true;
             });
 
             Timing.CallDelayed(300f, () =>
             {
+                if (!this.Active)
+                    return;
                 foreach (var checkpoint in this.checkpointdoors)
                 {
                     checkpoint.ChangeLock(DoorLockType.DecontLockdown);

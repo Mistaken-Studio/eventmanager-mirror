@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -155,7 +156,18 @@ namespace Mistaken.EventManager
             EventManager.ActiveEvent = this;
             Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color={EventManager.Color}>{this.Name}</color>");
             CharacterClassManager.LaterJoinEnabled = false;
-            this.OnIni();
+            try
+            {
+                this.OnIni();
+            }
+            catch (Exception ex)
+            {
+                Mistaken.API.Diagnostics.Module.EnableAllExcept(PluginHandler.Instance);
+                this.OnDeIni();
+                EventManager.ActiveEvent = null;
+                Log.Error(ex);
+            }
+
             if (this is ISpawnRandomItems)
             {
                 foreach (var item in Map.Rooms)
