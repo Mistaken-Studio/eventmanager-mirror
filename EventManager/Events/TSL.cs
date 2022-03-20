@@ -247,7 +247,7 @@ namespace Mistaken.EventManager.Events
                     e.Network_locked = true;
             }
 
-            var rooms = Map.Rooms.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173).ToList();
+            var rooms = Map.Rooms.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz012).ToList();
             foreach (var item in rooms)
             {
                 switch (UnityEngine.Random.Range(0, 11))
@@ -790,19 +790,14 @@ namespace Mistaken.EventManager.Events
         public static bool Prefix(Collider[] intake, Vector3 moveVector, Scp914Mode mode, Scp914KnobSetting setting)
         {
             HashSet<GameObject> hashSet = HashSetPool<GameObject>.Shared.Rent();
-            bool flag = (mode & Scp914Mode.Inventory) == Scp914Mode.Inventory;
-            bool heldOnly = flag && (mode & Scp914Mode.Held) == Scp914Mode.Held;
             HashSet<Player> upgradedPlayers = new HashSet<Player>();
             for (int i = 0; i < intake.Length; i++)
             {
                 GameObject gameObject = intake[i].transform.root.gameObject;
-                if (hashSet.Add(gameObject))
+                if (hashSet.Add(gameObject) && ReferenceHub.TryGetHub(gameObject, out ReferenceHub ply))
                 {
-                    if (ReferenceHub.TryGetHub(gameObject, out var ply))
-                    {
-                        upgradedPlayers.Add(Player.Get(ply));
-                        Scp914Upgrader.ProcessPlayer(ply, flag, heldOnly, moveVector, setting);
-                    }
+                    upgradedPlayers.Add(Player.Get(ply));
+                    Scp914Upgrader.ProcessPlayer(ply, false, false, moveVector, setting);
                 }
             }
 

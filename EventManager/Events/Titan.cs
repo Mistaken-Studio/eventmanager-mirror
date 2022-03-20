@@ -9,6 +9,7 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using MEC;
 using Mistaken.API;
 using Mistaken.API.Shield;
 
@@ -52,7 +53,7 @@ namespace Mistaken.EventManager.Events
         private void Server_RoundStarted()
         {
             var players = RealPlayers.List.ToList();
-            var titan = players[UnityEngine.Random.Range(0, players.Count())];
+            var titan = players[UnityEngine.Random.Range(0, players.Count)];
             players.Remove(titan);
             titan.SlowChangeRole(RoleType.ChaosMarauder);
             titan.Broadcast(8, EventManager.EMLB + this.Translations["T_Info"]);
@@ -74,7 +75,18 @@ namespace Mistaken.EventManager.Events
                 player.Broadcast(8, EventManager.EMLB + this.Translations["MTF_Info"]);
             }
 
-            TitanShield.Ini<TitanShield>(titan);
+            Timing.CallDelayed(0.2f, () =>
+            {
+                TitanShield.Ini<TitanShield>(titan);
+                titan.RemoveItem(titan.Items.First(x => x.Type == ItemType.KeycardChaosInsurgency));
+                titan.AddItem(ItemType.GunE11SR);
+                titan.AddItem(ItemType.GunShotgun);
+                titan.AddItem(ItemType.GunRevolver);
+                titan.AddItem(ItemType.GrenadeHE);
+                titan.SetAmmo(AmmoType.Ammo12Gauge, 74);
+                titan.SetAmmo(AmmoType.Nato556, 200);
+                titan.SetAmmo(AmmoType.Ammo44Cal, 68);
+            });
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
