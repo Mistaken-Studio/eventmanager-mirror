@@ -192,6 +192,7 @@ namespace Mistaken.EventManager
                                 break;
                             }
 
+                        case 8:
                         case 3:
                             {
                                 new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
@@ -242,7 +243,7 @@ namespace Mistaken.EventManager
                                 break;
                             }
 
-                        case 8:
+                        /*case 8:
                             {
                                 new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
@@ -250,7 +251,7 @@ namespace Mistaken.EventManager
                                 ammo.SavedAmmo = 200;
                                 ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
-                            }
+                            }*/
 
                         case 9:
                             {
