@@ -74,8 +74,8 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            var rooms = Map.Rooms.Where(room => room.Type != RoomType.EzShelter && room.Type != RoomType.HczTesla && room.Type != RoomType.HczNuke && room.Type != RoomType.Surface && room.Type != RoomType.Hcz049 && room.Type != RoomType.Pocket && room.Type != RoomType.Hcz106 && room.Type != RoomType.HczHid && room.Type != RoomType.Lcz914 && room.Type != RoomType.Lcz173 && room.Type != RoomType.EzCollapsedTunnel).ToList();
-            foreach (var player in RealPlayers.List)
+            var rooms = Map.Rooms.Where(x => x.Type != RoomType.EzShelter && x.Type != RoomType.HczTesla && x.Type != RoomType.HczNuke && x.Type != RoomType.Surface && x.Type != RoomType.Hcz049 && x.Type != RoomType.Pocket && x.Type != RoomType.Hcz106 && x.Type != RoomType.HczHid && x.Type != RoomType.Lcz914 && x.Type != RoomType.Lcz173 && x.Type != RoomType.EzCollapsedTunnel && x.Type != RoomType.Lcz012).ToList();
+            foreach (var player in RealPlayers.RandomList)
             {
                 int random = UnityEngine.Random.Range(0, rooms.Count());
                 var room = rooms[random];

@@ -26,7 +26,7 @@ namespace Mistaken.EventManager.Events
 
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
-            { "HUMAN_Info", "Nastąpił wyłom <color=gray>SCP-575</color>! Zdobądźcie latarkę lub zamontujcie ją na broni.. inaczej [REDACTED]" },
+            { "H_Info", "Nastąpił wyłom <color=gray>SCP-575</color>! Zdobądźcie latarkę lub zamontujcie ją na broni.. inaczej [REDACTED]" },
         };
 
         public override void OnIni()
@@ -46,7 +46,7 @@ namespace Mistaken.EventManager.Events
         private void Server_RoundStarted()
         {
             foreach (var player in RealPlayers.List.Where(x => x.Team != Team.SCP))
-                player.Broadcast(8, EventManager.EMLB + this.Translations["HUMAN_Info"], shouldClearPrevious: true);
+                player.Broadcast(8, EventManager.EMLB + this.Translations["H_Info"], shouldClearPrevious: true);
 
             EventManager.Instance.RunCoroutine(this.Lights(), "scp575_lights");
             EventManager.Instance.RunCoroutine(this.Attack(), "scp575_attack");
@@ -72,24 +72,28 @@ namespace Mistaken.EventManager.Events
 
         private IEnumerator<float> Attack()
         {
-            yield return Timing.WaitForSeconds(10f);
+            yield return Timing.WaitForSeconds(10);
             while (this.Active)
             {
                 if (!this.attackPhase)
+                {
+                    yield return Timing.WaitForSeconds(0.5f);
                     continue;
+                }
+
                 foreach (var player in RealPlayers.List)
                 {
                     if (player.Team == Team.SCP)
                         continue;
-                    if (player.Zone == ZoneType.HeavyContainment)
-                    {
-                        if (player.CurrentItem.Base is Firearm firearm && firearm.Status.Flags == FirearmStatusFlags.FlashlightEnabled)
-                            continue;
-                        else if (player.CurrentItem.Base is FlashlightItem flashlight && flashlight.IsEmittingLight)
-                            continue;
-                        else
-                            player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
-                    }
+                    if (player.Zone != ZoneType.HeavyContainment)
+                        continue;
+
+                    if (player.CurrentItem?.Base is Firearm firearm && firearm.Status.Flags.HasFlag(FirearmStatusFlags.FlashlightEnabled))
+                        continue;
+                    else if (player.CurrentItem?.Base is FlashlightItem flashlight && flashlight.IsEmittingLight)
+                        continue;
+                    else
+                        player.Hurt(new CustomReasonDamageHandler("SCP-575", UnityEngine.Random.Range(20f, 35f)));
                 }
 
                 yield return Timing.WaitForSeconds(15);

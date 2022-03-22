@@ -1,4 +1,10 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// <copyright file="CoalWar.cs" company="Mistaken">
+// Copyright (c) Mistaken. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
+/*// -----------------------------------------------------------------------
 // <copyright file="CoalWar.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
@@ -154,3 +160,4 @@ namespace Mistaken.EventManager.Events
         }
     }
 }
+*/

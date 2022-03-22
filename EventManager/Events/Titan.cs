@@ -9,6 +9,7 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using MEC;
 using Mistaken.API;
 using Mistaken.API.Shield;
 
@@ -52,7 +53,7 @@ namespace Mistaken.EventManager.Events
         private void Server_RoundStarted()
         {
             var players = RealPlayers.List.ToList();
-            var titan = players[UnityEngine.Random.Range(0, players.Count())];
+            var titan = players[UnityEngine.Random.Range(0, players.Count)];
             players.Remove(titan);
             titan.SlowChangeRole(RoleType.ChaosMarauder);
             titan.Broadcast(8, EventManager.EMLB + this.Translations["T_Info"]);
@@ -74,15 +75,25 @@ namespace Mistaken.EventManager.Events
                 player.Broadcast(8, EventManager.EMLB + this.Translations["MTF_Info"]);
             }
 
-            TitanShield.Ini<TitanShield>(titan);
+            Timing.CallDelayed(0.2f, () =>
+            {
+                TitanShield.Ini<TitanShield>(titan);
+                titan.RemoveItem(titan.Items.First(x => x.Type == ItemType.KeycardChaosInsurgency));
+                titan.AddItem(ItemType.GunE11SR);
+                titan.AddItem(ItemType.GunShotgun);
+                titan.AddItem(ItemType.GunRevolver);
+                titan.AddItem(ItemType.GrenadeHE);
+                titan.SetAmmo(AmmoType.Ammo12Gauge, 74);
+                titan.SetAmmo(AmmoType.Nato556, 200);
+                titan.SetAmmo(AmmoType.Ammo44Cal, 68);
+            });
         }
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            var players = RealPlayers.List.Where(x => x.IsAlive);
-            if (players.Count(x => x.Team == Team.MTF) == 0)
+            if (RealPlayers.List.Count(x => x.Team == Team.MTF) == 0)
                 this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
-            else if (players.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
+            else if (RealPlayers.List.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
                 this.OnEnd("<color=blue>MFO</color> wygrywa!");
         }
     }
@@ -91,7 +102,7 @@ namespace Mistaken.EventManager.Events
     {
         protected override float MaxShield => 1000;
 
-        protected override float ShieldRechargeRate => 25;
+        protected override float ShieldRechargeRate => 50;
 
         protected override float ShieldEffectivnes => 1;
 

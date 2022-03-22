@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -155,7 +156,18 @@ namespace Mistaken.EventManager
             EventManager.ActiveEvent = this;
             Map.Broadcast(10, EventManager.EMLB + $"Uruchomiono event: <color={EventManager.Color}>{this.Name}</color>");
             CharacterClassManager.LaterJoinEnabled = false;
-            this.OnIni();
+            try
+            {
+                this.OnIni();
+            }
+            catch (Exception ex)
+            {
+                Mistaken.API.Diagnostics.Module.EnableAllExcept(PluginHandler.Instance);
+                this.OnDeIni();
+                EventManager.ActiveEvent = null;
+                Log.Error(ex);
+            }
+
             if (this is ISpawnRandomItems)
             {
                 foreach (var item in Map.Rooms)
@@ -192,6 +204,7 @@ namespace Mistaken.EventManager
                                 break;
                             }
 
+                        case 8:
                         case 3:
                             {
                                 new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
@@ -242,7 +255,7 @@ namespace Mistaken.EventManager
                                 break;
                             }
 
-                        case 8:
+                        /*case 8:
                             {
                                 new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
                                 new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
@@ -250,7 +263,7 @@ namespace Mistaken.EventManager
                                 ammo.SavedAmmo = 200;
                                 ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                                 break;
-                            }
+                            }*/
 
                         case 9:
                             {
