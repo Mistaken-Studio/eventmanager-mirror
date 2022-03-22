@@ -9,9 +9,6 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Interactables.Interobjects.DoorUtils;
-using MEC;
-using Mistaken.API;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
@@ -32,7 +29,6 @@ namespace Mistaken.EventManager.Events
         public override void OnIni()
         {
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
             foreach (var door in Map.Doors)
@@ -47,64 +43,62 @@ namespace Mistaken.EventManager.Events
 
         public override void OnDeIni()
         {
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
             Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
         }
 
-        private void Server_RoundStarted()
-        {
-        }
-
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
-            switch (ev.NewRole)
+            MEC.Timing.CallDelayed(1, () =>
             {
-                case RoleType.NtfPrivate:
-                case RoleType.NtfSergeant:
-                case RoleType.NtfCaptain:
-                    ev.Player.Position = RoleType.Scp096.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.ChaosConscript:
-                case RoleType.ChaosMarauder:
-                case RoleType.ChaosRepressor:
-                    ev.Player.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.ChaosRifleman:
-                case RoleType.NtfSpecialist:
-                    ev.Player.Position = RoleType.Scp93989.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scp0492:
-                    ev.Player.Position = RoleType.ClassD.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.ClassD:
-                    ev.Player.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scientist:
-                    ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.FacilityGuard:
-                    ev.Player.Position = Map.Doors.First(x => x.Type == DoorType.Scp079First).Base.transform.position + (Vector3.up * 2);
-                    break;
-                case RoleType.Scp93953:
-                case RoleType.Scp93989:
-                    ev.Player.Position = RoleType.Scientist.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scp173:
-                    ev.Player.Position = RoleType.NtfPrivate.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scp049:
-                    ev.Player.Position = RoleType.ChaosRifleman.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scp106:
-                    ev.Player.Position = RoleType.NtfCaptain.GetRandomSpawnProperties().Item1;
-                    break;
-                case RoleType.Scp096:
-                    ev.Player.Position = RoleType.NtfSergeant.GetRandomSpawnProperties().Item1;
-                    break;
-                default:
-                    break;
-            }
+                switch (ev.NewRole)
+                {
+                    case RoleType.NtfPrivate:
+                    case RoleType.NtfSergeant:
+                    case RoleType.NtfCaptain:
+                        ev.Player.Position = RoleType.Scp096.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.ChaosConscript:
+                    case RoleType.ChaosMarauder:
+                    case RoleType.ChaosRepressor:
+                        ev.Player.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.ChaosRifleman:
+                    case RoleType.NtfSpecialist:
+                        ev.Player.Position = RoleType.Scp93989.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scp0492:
+                        ev.Player.Position = RoleType.ClassD.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.ClassD:
+                        ev.Player.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scientist:
+                        ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.FacilityGuard:
+                        ev.Player.Position = Map.Doors.First(x => x.Type == DoorType.Scp079First).Base.transform.position + (Vector3.up * 2);
+                        break;
+                    case RoleType.Scp93953:
+                    case RoleType.Scp93989:
+                        ev.Player.Position = RoleType.Scientist.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scp173:
+                        ev.Player.Position = RoleType.NtfPrivate.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scp049:
+                        ev.Player.Position = RoleType.ChaosRifleman.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scp106:
+                        ev.Player.Position = RoleType.NtfCaptain.GetRandomSpawnProperties().Item1;
+                        break;
+                    case RoleType.Scp096:
+                        ev.Player.Position = RoleType.NtfSergeant.GetRandomSpawnProperties().Item1;
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
         private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)

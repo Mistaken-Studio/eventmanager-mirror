@@ -115,7 +115,7 @@ namespace Mistaken.EventManager.Events
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Patch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Scp914UpgradePatch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
@@ -247,7 +247,7 @@ namespace Mistaken.EventManager.Events
                     e.Network_locked = true;
             }
 
-            var rooms = Map.Rooms.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173).ToList();
+            var rooms = Map.Rooms.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz012).ToList();
             foreach (var item in rooms)
             {
                 switch (UnityEngine.Random.Range(0, 11))
@@ -282,6 +282,7 @@ namespace Mistaken.EventManager.Events
                             break;
                         }
 
+                    case 8:
                     case 3:
                         {
                             new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
@@ -332,7 +333,7 @@ namespace Mistaken.EventManager.Events
                             break;
                         }
 
-                    case 8:
+                    /*case 8:
                         {
                             new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
                             new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
@@ -340,8 +341,7 @@ namespace Mistaken.EventManager.Events
                             ammo.SavedAmmo = 200;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
-                        }
-
+                        }*/
                     case 9:
                         {
                             new Item(ItemType.Medkit).Spawn(item.Position + Vector3.up);
@@ -785,24 +785,19 @@ namespace Mistaken.EventManager.Events
     }
 
     [HarmonyPatch(typeof(Scp914Upgrader), "Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) })]
-    internal class Patch
+    internal class Scp914UpgradePatch
     {
         public static bool Prefix(Collider[] intake, Vector3 moveVector, Scp914Mode mode, Scp914KnobSetting setting)
         {
             HashSet<GameObject> hashSet = HashSetPool<GameObject>.Shared.Rent();
-            bool flag = (mode & Scp914Mode.Inventory) == Scp914Mode.Inventory;
-            bool heldOnly = flag && (mode & Scp914Mode.Held) == Scp914Mode.Held;
             HashSet<Player> upgradedPlayers = new HashSet<Player>();
             for (int i = 0; i < intake.Length; i++)
             {
                 GameObject gameObject = intake[i].transform.root.gameObject;
-                if (hashSet.Add(gameObject))
+                if (hashSet.Add(gameObject) && ReferenceHub.TryGetHub(gameObject, out ReferenceHub ply))
                 {
-                    if (ReferenceHub.TryGetHub(gameObject, out var ply))
-                    {
-                        upgradedPlayers.Add(Player.Get(ply));
-                        Scp914Upgrader.ProcessPlayer(ply, flag, heldOnly, moveVector, setting);
-                    }
+                    upgradedPlayers.Add(Player.Get(ply));
+                    Scp914Upgrader.ProcessPlayer(ply, false, false, moveVector, setting);
                 }
             }
 

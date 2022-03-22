@@ -65,12 +65,12 @@ namespace Mistaken.EventManager.Events
                     time--;
                 foreach (var player in RealPlayers.List)
                 {
+                    if (player.Role == RoleType.Spectator)
+                        continue;
+
                     this.DropGrenadeUnder(player);
                     if (time < 7)
-                    {
-                        yield return MEC.Timing.WaitForSeconds(UnityEngine.Random.Range(0f, 2f));
-                        this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(0, 3));
-                    }
+                        MEC.Timing.CallDelayed(UnityEngine.Random.Range(0f, 2f), () => this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(1, 3)));
                 }
             }
         }
