@@ -36,11 +36,10 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                var etype = e.Type();
-                if (etype == ElevatorType.GateA || etype == ElevatorType.GateB)
-                    e.Network_locked = true;
+                if (e.Type == ElevatorType.GateA || e.Type == ElevatorType.GateB)
+                    e.IsLocked = true;
             }
         }
 
@@ -91,7 +90,7 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (RealPlayers.List.Count(x => x.Team == Team.MTF) == 0)
+            if (RealPlayers.List.Count(x => x.Role.Team == Team.MTF) == 0)
                 this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
             else if (RealPlayers.List.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
                 this.OnEnd("<color=blue>MFO</color> wygrywa!");

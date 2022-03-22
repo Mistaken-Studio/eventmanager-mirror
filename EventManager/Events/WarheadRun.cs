@@ -35,8 +35,8 @@ namespace Mistaken.EventManager.Events
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            Map.Lifts.First(e => e.Type() == ElevatorType.Nuke).Network_locked = true;
-            foreach (var door in Map.Doors)
+            Exiled.API.Features.Lift.List.First(e => e.Type == ElevatorType.Nuke).IsLocked = true;
+            foreach (var door in Door.List)
             {
                 door.IsOpen = true;
                 if (door.Type == DoorType.CheckpointEntrance || door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)

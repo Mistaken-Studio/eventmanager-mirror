@@ -36,7 +36,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Nametag == string.Empty)
                     door.IsOpen = true;
@@ -52,14 +52,13 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                var eType = e.Type();
-                if (eType == ElevatorType.LczA || eType == ElevatorType.LczB)
-                    e.Network_locked = true;
+                if (e.Type == ElevatorType.LczA || e.Type == ElevatorType.LczB)
+                    e.IsLocked = true;
             }
 
-            this.spawn = Map.Rooms.First(x => x.Type == RoomType.EzGateB).transform.position + (Vector3.up * 2);
+            this.spawn = Room.List.First(x => x.Type == RoomType.EzGateB).transform.position + (Vector3.up * 2);
         }
 
         public override void OnDeIni()
@@ -79,43 +78,43 @@ namespace Mistaken.EventManager.Events
             {
                 case 0:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp079First).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp079First).Position);
                         break;
                     }
 
                 case 1:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp079Second).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp079Second).Position);
                         break;
                     }
 
                 case 2:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp049Armory).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp049Armory).Position);
                         break;
                     }
 
                 case 3:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp096).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp096).Position);
                         break;
                     }
 
                 case 4:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp106Primary).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp106Primary).Position);
                         break;
                     }
 
                 case 5:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.Scp106Secondary).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.Scp106Secondary).Position);
                         break;
                     }
 
                 case 6:
                     {
-                        new MicroHid(ItemType.MicroHID).Spawn(Map.Doors.First(x => x.Type == DoorType.NukeArmory).Position);
+                        Item.Create(ItemType.MicroHID).Spawn(Door.List.First(x => x.Type == DoorType.NukeArmory).Position);
                         break;
                     }
             }

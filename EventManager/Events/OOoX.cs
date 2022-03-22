@@ -81,8 +81,8 @@ namespace Mistaken.EventManager.Events
                 admin.NoClipEnabled = true;
                 admin.IsBypassModeEnabled = true;
                 admin.IsGodModeEnabled = true;
-                admin.AddItem(new Firearm(ItemType.GunFSP9));
-                admin.AddItem(new Firearm(ItemType.GunCrossvec));
+                admin.AddItem(Item.Create(ItemType.GunFSP9));
+                admin.AddItem(Item.Create(ItemType.GunCrossvec));
             }
         }
 
@@ -114,7 +114,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.Attacker.CurrentItem?.Type == ItemType.GunFSP9)
             {
-                var grenade = new Throwable(ItemType.GrenadeHE, ev.Attacker);
+                var grenade = Item.Create(ItemType.GrenadeHE, ev.Attacker);
                 grenade.Base.ThrowSettings.RandomTorqueA = Vector3.zero;
                 grenade.Base.ThrowSettings.RandomTorqueB = Vector3.zero;
                 var pickup = grenade.Spawn(ev.Target.Position);

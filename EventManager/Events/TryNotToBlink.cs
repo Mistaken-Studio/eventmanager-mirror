@@ -33,7 +33,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                 {
@@ -47,8 +47,8 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (var e in Map.Lifts)
-                e.Network_locked = true;
+            foreach (var e in Exiled.API.Features.Lift.List)
+                e.IsLocked = true;
         }
 
         public override void OnDeIni()
@@ -70,7 +70,7 @@ namespace Mistaken.EventManager.Events
                 return;
             Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Team == Team.SCP)
+                if (ev.Player.Role.Team == Team.SCP)
                     ev.Player.SlowChangeRole(RoleType.Scp173);
                 else
                 {

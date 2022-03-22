@@ -41,13 +41,13 @@ namespace Mistaken.EventManager.Events
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                if (!e.elevatorName.StartsWith("El"))
-                    e.Network_locked = true;
+                if (!e.Name.StartsWith("El"))
+                    e.IsLocked = true;
             }
 
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 var doorType = door.Type;
                 if (doorType == DoorType.CheckpointEntrance || doorType == DoorType.CheckpointLczA || doorType == DoorType.CheckpointLczB)
@@ -71,7 +71,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            var rooms = Map.Rooms.Where(x => x.Type != RoomType.EzShelter && x.Type != RoomType.HczTesla && x.Type != RoomType.HczNuke && x.Type != RoomType.Surface && x.Type != RoomType.Hcz049 && x.Type != RoomType.Pocket && x.Type != RoomType.Hcz106 && x.Type != RoomType.HczHid && x.Type != RoomType.Lcz914 && x.Type != RoomType.Lcz173 && x.Type != RoomType.EzCollapsedTunnel && x.Type != RoomType.Lcz012).ToList();
+            var rooms = Room.List.Where(x => x.Type != RoomType.EzShelter && x.Type != RoomType.HczTesla && x.Type != RoomType.HczNuke && x.Type != RoomType.Surface && x.Type != RoomType.Hcz049 && x.Type != RoomType.Pocket && x.Type != RoomType.Hcz106 && x.Type != RoomType.HczHid && x.Type != RoomType.Lcz914 && x.Type != RoomType.Lcz173 && x.Type != RoomType.EzCollapsedTunnel && x.Type != RoomType.Lcz012).ToList();
             foreach (var player in RealPlayers.List)
             {
                 int random = UnityEngine.Random.Range(0, rooms.Count());
@@ -166,9 +166,8 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        var elevators = Map.Lifts;
-                        foreach (var elevator in elevators)
-                            elevator.Network_locked = true;
+                        foreach (var e in Exiled.API.Features.Lift.List)
+                            e.IsLocked = true;
                         foreach (var player in Player.Get(RoleType.ClassD))
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.LightContainment)
@@ -177,10 +176,10 @@ namespace Mistaken.EventManager.Events
 
                         MEC.Timing.CallDelayed(60, () =>
                         {
-                            foreach (var e in elevators)
+                            foreach (var e in Exiled.API.Features.Lift.List)
                             {
-                                if (e.elevatorName.StartsWith("El"))
-                                    e.Network_locked = false;
+                                if (e.Name.StartsWith("El"))
+                                    e.IsLocked = false;
                             }
                         });
                     });
@@ -206,11 +205,9 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        var elevators = Map.Lifts;
-                        var doors = Map.Doors;
-                        foreach (var elevator in elevators)
-                            elevator.Network_locked = true;
-                        foreach (var door in doors)
+                        foreach (var e in Exiled.API.Features.Lift.List)
+                            e.IsLocked = true;
+                        foreach (var door in Door.List)
                         {
                             if (door.Type == DoorType.CheckpointEntrance)
                             {
@@ -228,13 +225,13 @@ namespace Mistaken.EventManager.Events
 
                         MEC.Timing.CallDelayed(60, () =>
                         {
-                            foreach (var e in elevators)
+                            foreach (var e in Exiled.API.Features.Lift.List)
                             {
-                                if (e.elevatorName.StartsWith("El"))
-                                    e.Network_locked = false;
+                                if (e.Name.StartsWith("El"))
+                                    e.IsLocked = false;
                             }
 
-                            foreach (var door in doors)
+                            foreach (var door in Door.List)
                             {
                                 if (door.Type == DoorType.CheckpointEntrance)
                                 {
@@ -267,8 +264,7 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        var doors = Map.Doors;
-                        foreach (var door in doors)
+                        foreach (var door in Door.List)
                         {
                             if (door.Type == DoorType.CheckpointEntrance)
                             {
@@ -286,7 +282,7 @@ namespace Mistaken.EventManager.Events
 
                         MEC.Timing.CallDelayed(60, () =>
                         {
-                            foreach (var door in doors)
+                            foreach (var door in Door.List)
                             {
                                 if (door.Type == DoorType.CheckpointEntrance)
                                 {
@@ -319,8 +315,8 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        foreach (var elevator in Map.Lifts)
-                            elevator.Network_locked = true;
+                        foreach (var e in Exiled.API.Features.Lift.List)
+                            e.IsLocked = true;
                         foreach (var player in Player.Get(RoleType.ClassD))
                         {
                             if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment || player.CurrentRoom?.Zone == ZoneType.Entrance)
@@ -349,9 +345,9 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        foreach (var elevator in Map.Lifts)
-                            elevator.Network_locked = true;
-                        foreach (var door in Map.Doors)
+                        foreach (var e in Exiled.API.Features.Lift.List)
+                            e.IsLocked = true;
+                        foreach (var door in Door.List)
                         {
                             if (door.Type == DoorType.CheckpointEntrance)
                             {
@@ -389,7 +385,7 @@ namespace Mistaken.EventManager.Events
                     {
                         if (!this.Active)
                             return;
-                        foreach (var door in Map.Doors)
+                        foreach (var door in Door.List)
                         {
                             if (door.Type == DoorType.CheckpointEntrance)
                             {

@@ -48,10 +48,10 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.Shooting += this.Player_Shooting;
-            foreach (var e in Map.Lifts)
-                e.Network_locked = true;
+            foreach (var e in Exiled.API.Features.Lift.List)
+                e.IsLocked = true;
 
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.CheckpointEntrance)
                 {
@@ -85,10 +85,10 @@ namespace Mistaken.EventManager.Events
             var players = RealPlayers.List.ToList();
             var guard = players[UnityEngine.Random.Range(0, players.Count)];
             players.Remove(guard);
-            guard.SlowChangeRole(RoleType.FacilityGuard, Map.Rooms.First(x => x.Type == RoomType.Surface).Position + Vector3.up);
+            guard.SlowChangeRole(RoleType.FacilityGuard, Room.List.First(x => x.Type == RoomType.Surface).Position + Vector3.up);
             guard.Broadcast(8, EventManager.EMLB + this.Translations["G_Info"]);
             guard.SetGUI("gcdr_guard", PseudoGUIPosition.MIDDLE, "Za minutę zostaniesz przeniesiony do <color=yellow>przejścia HCZ-EZ</color>", 10);
-            Vector3 checkpoint = Map.Rooms.First(x => x.Type == RoomType.HczEzCheckpoint).Position + Vector3.up;
+            Vector3 checkpoint = Room.List.First(x => x.Type == RoomType.HczEzCheckpoint).Position + Vector3.up;
             foreach (var player in players)
             {
                 player.SlowChangeRole(RoleType.ClassD, checkpoint);
@@ -99,11 +99,11 @@ namespace Mistaken.EventManager.Events
             MEC.Timing.CallDelayed(0.2f, () =>
             {
                 guard.RemoveItem(guard.Items.First(x => x.Type == ItemType.GunFSP9));
-                var weapon = new Firearm(ItemType.GunFSP9);
-                weapon.Base.Status = new InventorySystem.Items.Firearms.FirearmStatus(30, weapon.Base.Status.Flags, 10770);
-                weapon.Base._status = weapon.Base.Status;
+                var weapon = (InventorySystem.Items.Firearms.Firearm)Item.Create(ItemType.GunFSP9).Base;
+                weapon.Status = new InventorySystem.Items.Firearms.FirearmStatus(30, weapon.Status.Flags, 10770);
+                weapon._status = weapon.Status;
                 guard.AddItem(weapon);
-                weapon.Base._sendStatusNextFrame = true;
+                weapon._sendStatusNextFrame = true;
                 guard.RemoveItem(guard.Items.First(x => x.Type == ItemType.KeycardGuard));
             });
 
@@ -120,11 +120,11 @@ namespace Mistaken.EventManager.Events
                     {
                         if (player.Role != RoleType.ClassD)
                             continue;
-                        var weapon = new Firearm(ItemType.GunRevolver);
-                        weapon.Base.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, weapon.Base.Status.Flags, 588);
-                        weapon.Base._status = weapon.Base.Status;
+                        var weapon = (InventorySystem.Items.Firearms.Firearm)Item.Create(ItemType.GunFSP9).Base;
+                        weapon.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, weapon.Status.Flags, 588);
+                        weapon._status = weapon.Status;
                         player.AddItem(weapon);
-                        weapon.Base._sendStatusNextFrame = true;
+                        weapon._sendStatusNextFrame = true;
                         player.SetGUI("gcdr_classd", PseudoGUIPosition.MIDDLE, "Dostałeś <color=yellow>Rewolwer</color>", 5);
                         player.EnableEffect<CustomPlayerEffects.Visuals939>();
                     }
@@ -137,7 +137,7 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (RealPlayers.List.Count(x => x.Team == Team.CDP) == 0)
+            if (RealPlayers.List.Count(x => x.Role.Team == Team.CDP) == 0)
                 this.OnEnd("<color=gray>Ochrona</color> wygrywa!");
             else if (RealPlayers.List.FirstOrDefault(x => x.Role == RoleType.FacilityGuard) == default)
                 this.OnEnd("<color=orange>Klasa D</color> wygrywa!");
@@ -145,13 +145,13 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Shooting(Exiled.Events.EventArgs.ShootingEventArgs ev)
         {
-            if (ev.Shooter.Role == RoleType.FacilityGuard)
+            if (ev.Shooter.Role.Type == RoleType.FacilityGuard)
             {
                 var firearm = (InventorySystem.Items.Firearms.Firearm)ev.Shooter.CurrentItem.Base;
                 firearm.Status = new InventorySystem.Items.Firearms.FirearmStatus(30, firearm.Status.Flags, firearm.Status.Attachments);
                 firearm._sendStatusNextFrame = true;
             }
-            else if (ev.Shooter.Role == RoleType.ClassD)
+            else if (ev.Shooter.Role.Type == RoleType.ClassD)
             {
                 var firearm = (InventorySystem.Items.Firearms.Firearm)ev.Shooter.CurrentItem.Base;
                 firearm.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, firearm.Status.Flags, firearm.Status.Attachments);
@@ -165,7 +165,7 @@ namespace Mistaken.EventManager.Events
             {
                 foreach (var guard in RealPlayers.List)
                 {
-                    if (guard.Role != RoleType.FacilityGuard)
+                    if (guard.Role.Type != RoleType.FacilityGuard)
                         continue;
                     if (RealPlayers.List.Any(x => x.Role == RoleType.ClassD && Physics.Linecast(x.Position + Vector3.up, guard.Position + Vector3.up, out var hit, ~(1 << LayerMask.NameToLayer("Player"))) && hit.collider.name == "Player"))
                     {

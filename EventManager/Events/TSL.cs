@@ -208,7 +208,7 @@ namespace Mistaken.EventManager.Events
                             else
                             {
                                 this.staticPlayers[player] = (this.Players[player].Item1, TSLClassType.Traitor);
-                                Map.Rooms.First(x => x.Type == RoomType.Lcz914).TurnOffLights(5f);
+                                Room.List.First(x => x.Type == RoomType.Lcz914).TurnOffLights(5f);
                             }
 
                             break;
@@ -230,7 +230,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                     door.ChangeLock(DoorLockType.DecontLockdown);
@@ -241,22 +241,22 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                if (e.elevatorName.StartsWith("El"))
-                    e.Network_locked = true;
+                if (e.Name.StartsWith("El"))
+                    e.IsLocked = true;
             }
 
-            var rooms = Map.Rooms.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz012).ToList();
+            var rooms = Room.List.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz012).ToList();
             foreach (var item in rooms)
             {
                 switch (UnityEngine.Random.Range(0, 11))
                 {
                     case 0:
                         {
-                            new Firearm(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunCOM15).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 24;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -264,9 +264,9 @@ namespace Mistaken.EventManager.Events
 
                     case 1:
                         {
-                            new Firearm(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunCOM18).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 36;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -274,9 +274,9 @@ namespace Mistaken.EventManager.Events
 
                     case 2:
                         {
-                            new Firearm(ItemType.GunRevolver).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunRevolver).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo44cal).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 16;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -285,9 +285,9 @@ namespace Mistaken.EventManager.Events
                     case 8:
                     case 3:
                         {
-                            new Firearm(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunFSP9).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorLight).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 60;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -295,9 +295,9 @@ namespace Mistaken.EventManager.Events
 
                     case 4:
                         {
-                            new Firearm(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunCrossvec).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo9x19).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 100;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -305,9 +305,9 @@ namespace Mistaken.EventManager.Events
 
                     case 5:
                         {
-                            new Firearm(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunE11SR).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo556x45).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 80;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -315,9 +315,9 @@ namespace Mistaken.EventManager.Events
 
                     case 6:
                         {
-                            new Firearm(ItemType.GunAK).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunAK).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 70;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -325,9 +325,9 @@ namespace Mistaken.EventManager.Events
 
                     case 7:
                         {
-                            new Firearm(ItemType.GunShotgun).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunShotgun).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorCombat).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo12gauge).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 28;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
@@ -335,24 +335,24 @@ namespace Mistaken.EventManager.Events
 
                     /*case 8:
                         {
-                            new Firearm(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
-                            new Armor(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
-                            var ammo = (AmmoPickup)new Ammo(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
+                            Item.Create(ItemType.GunLogicer).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.ArmorHeavy).Spawn(item.Position + Vector3.up);
+                            var ammo = (AmmoPickup)Item.Create(ItemType.Ammo762x39).Spawn(item.Position + Vector3.up).Base;
                             ammo.SavedAmmo = 200;
                             ammo.NetworkSavedAmmo = ammo.SavedAmmo;
                             break;
                         }*/
                     case 9:
                         {
-                            new Item(ItemType.Medkit).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Painkillers).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.Medkit).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.Painkillers).Spawn(item.Position + Vector3.up);
                             break;
                         }
 
                     case 10:
                         {
-                            new Item(ItemType.Medkit).Spawn(item.Position + Vector3.up);
-                            new Item(ItemType.Painkillers).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.Medkit).Spawn(item.Position + Vector3.up);
+                            Item.Create(ItemType.Painkillers).Spawn(item.Position + Vector3.up);
                             break;
                         }
                 }
@@ -723,14 +723,15 @@ namespace Mistaken.EventManager.Events
                                             List<Vector3> positions = new List<Vector3>() { new Vector3(-7f, 1f, 6.3f), new Vector3(-7.4f, 1f, 6.3f) };
                                             foreach (var pos in positions)
                                             {
-                                                var room = Map.Rooms.First(x => x.Type == RoomType.Lcz914);
+                                                var room = Room.List.First(x => x.Type == RoomType.Lcz914);
                                                 var basePos = room.Position;
                                                 var offset = pos;
                                                 offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
                                                 basePos += offset;
-                                                var grenade = new Throwable(ItemType.GrenadeHE).Throw(basePos, Vector3.zero);
+                                                var grenade = (ExplosionGrenade)Item.Create(ItemType.GrenadeHE).Spawn(basePos).Base;
                                                 grenade.PreviousOwner = new Footprinting.Footprint(player.ReferenceHub);
                                                 grenade.GetComponent<TimeGrenade>()._fuseTime = 0.1f;
+                                                grenade.ServerActivate();
                                             }
 
                                             return "Pomyślnie wysadziłeś wnętrza komór SCP-914";
@@ -738,7 +739,7 @@ namespace Mistaken.EventManager.Events
 
                                     case "lock914":
                                         {
-                                            var door = Map.Doors.First(x => x.Type == DoorType.Scp914);
+                                            var door = Door.List.First(x => x.Type == DoorType.Scp914);
                                             door.IsOpen = false;
                                             Timing.CallDelayed(15f, () => door.IsOpen = true);
 
