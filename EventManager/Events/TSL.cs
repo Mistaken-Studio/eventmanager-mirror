@@ -247,7 +247,7 @@ namespace Mistaken.EventManager.Events
                     e.IsLocked = true;
             }
 
-            var rooms = Room.List.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz012).ToList();
+            var rooms = Room.List.Where(x => x.Zone == ZoneType.LightContainment && x.Type != RoomType.Lcz173 && x.Type != RoomType.Lcz330).ToList();
             foreach (var item in rooms)
             {
                 switch (UnityEngine.Random.Range(0, 11))
