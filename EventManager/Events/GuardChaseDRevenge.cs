@@ -44,7 +44,8 @@ namespace Mistaken.EventManager.Events
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Events.DisabledPatchesHashSet.Add(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance));
             Exiled.Events.Events.Instance.ReloadDisabledPatches();
-            PluginHandler.Harmony.Patch(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(PlayerInteractPatch).GetMethod("Transpiler", BindingFlags.NonPublic | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler1", BindingFlags.NonPublic | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(typeof(BreakableWindow).GetMethod(nameof(BreakableWindow.Damage), BindingFlags.Public | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler2", BindingFlags.NonPublic | BindingFlags.Static)));
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.Shooting += this.Player_Shooting;
@@ -74,6 +75,7 @@ namespace Mistaken.EventManager.Events
         public override void OnDeIni()
         {
             PluginHandler.Harmony.Unpatch(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance), HarmonyPatchType.Prefix);
+            PluginHandler.Harmony.Unpatch(typeof(BreakableWindow).GetMethod(nameof(BreakableWindow.Damage), BindingFlags.Public | BindingFlags.Instance), HarmonyPatchType.Prefix);
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
             Exiled.Events.Handlers.Player.Shooting -= this.Player_Shooting;
@@ -182,10 +184,18 @@ namespace Mistaken.EventManager.Events
     }
 
     [HarmonyPatch(typeof(PlayerInteract), nameof(PlayerInteract.OnInteract))]
-    internal class PlayerInteractPatch
+    [HarmonyPatch(typeof(BreakableWindow), nameof(BreakableWindow.Damage))]
+    internal class EventPatches
     {
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        private static IEnumerable<CodeInstruction> Transpiler1(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
+            yield return new CodeInstruction(OpCodes.Ret);
+            yield break;
+        }
+
+        private static IEnumerable<CodeInstruction> Transpiler2(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            yield return new CodeInstruction(OpCodes.Ldc_I4_0);
             yield return new CodeInstruction(OpCodes.Ret);
             yield break;
         }
