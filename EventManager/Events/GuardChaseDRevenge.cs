@@ -33,7 +33,7 @@ namespace Mistaken.EventManager.Events
         public override Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
             { "G_Info", "Jesteś <color=gray>Ochroniarzem</color>. Posiadasz nieskończoną ilość amunicji. Twoim zadaniem jest znalezienie i zabicie każdej <color=orange>Klasy D</color>." },
-            { "D_Info", "Jesteś <color=orange>Klasą D</color>. Twoim zadaniem jest schowanie się/ucieczka przed <color=gray>Ochroniarzem</color>. Po 8 minutach dostaniecie Rewolwer z pomocą którego dokanacie odwetu." },
+            { "D_Info", "Jesteś <color=orange>Klasą D</color>. Twoim zadaniem jest schowanie się/ucieczka przed <color=gray>Ochroniarzem</color>. Po 6 minutach dostaniecie Rewolwer z pomocą którego dokanacie odwetu." },
         };
 
         public override void OnIni()
@@ -112,7 +112,7 @@ namespace Mistaken.EventManager.Events
                 if (!this.Active)
                     return;
                 guard.Position = checkpoint;
-                MEC.Timing.CallDelayed(420, () =>
+                MEC.Timing.CallDelayed(300, () =>
                 {
                     if (!this.Active)
                         return;
@@ -120,7 +120,7 @@ namespace Mistaken.EventManager.Events
                     {
                         if (player.Role != RoleType.ClassD)
                             continue;
-                        var weapon = (InventorySystem.Items.Firearms.Firearm)Item.Create(ItemType.GunFSP9).Base;
+                        var weapon = (InventorySystem.Items.Firearms.Firearm)Item.Create(ItemType.GunRevolver).Base;
                         weapon.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, weapon.Status.Flags, 588);
                         weapon._status = weapon.Status;
                         player.AddItem(weapon);
