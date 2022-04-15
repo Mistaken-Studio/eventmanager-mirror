@@ -105,7 +105,6 @@ namespace Mistaken.EventManager.Events
                 weapon.Status = new InventorySystem.Items.Firearms.FirearmStatus(30, weapon.Status.Flags, 10770);
                 weapon._status = weapon.Status;
                 guard.AddItem(weapon);
-                weapon._sendStatusNextFrame = true;
                 guard.RemoveItem(guard.Items.First(x => x.Type == ItemType.KeycardGuard));
             });
 
@@ -126,7 +125,6 @@ namespace Mistaken.EventManager.Events
                         weapon.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, weapon.Status.Flags, 588);
                         weapon._status = weapon.Status;
                         player.AddItem(weapon);
-                        weapon._sendStatusNextFrame = true;
                         player.SetGUI("gcdr_classd", PseudoGUIPosition.MIDDLE, "Dostałeś <color=yellow>Rewolwer</color>", 5);
                         player.EnableEffect<CustomPlayerEffects.Visuals939>();
                     }
@@ -151,13 +149,11 @@ namespace Mistaken.EventManager.Events
             {
                 var firearm = (InventorySystem.Items.Firearms.Firearm)ev.Shooter.CurrentItem.Base;
                 firearm.Status = new InventorySystem.Items.Firearms.FirearmStatus(30, firearm.Status.Flags, firearm.Status.Attachments);
-                firearm._sendStatusNextFrame = true;
             }
             else if (ev.Shooter.Role.Type == RoleType.ClassD)
             {
                 var firearm = (InventorySystem.Items.Firearms.Firearm)ev.Shooter.CurrentItem.Base;
                 firearm.Status = new InventorySystem.Items.Firearms.FirearmStatus(4, firearm.Status.Flags, firearm.Status.Attachments);
-                firearm._sendStatusNextFrame = true;
             }
         }
 
