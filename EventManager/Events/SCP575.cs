@@ -45,7 +45,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            foreach (var player in RealPlayers.List.Where(x => x.Team != Team.SCP))
+            foreach (var player in RealPlayers.List.Where(x => x.Role.Team != Team.SCP))
                 player.Broadcast(8, EventManager.EMLB + this.Translations["H_Info"], shouldClearPrevious: true);
 
             EventManager.Instance.RunCoroutine(this.Lights(), "scp575_lights");
@@ -83,7 +83,7 @@ namespace Mistaken.EventManager.Events
 
                 foreach (var player in RealPlayers.List)
                 {
-                    if (player.Team == Team.SCP)
+                    if (player.Role.Team == Team.SCP)
                         continue;
                     if (player.Zone != ZoneType.HeavyContainment)
                         continue;

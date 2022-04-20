@@ -41,7 +41,7 @@ namespace Mistaken.EventManager.Events
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                 {
@@ -52,7 +52,7 @@ namespace Mistaken.EventManager.Events
                     door.ChangeLock(DoorLockType.AdminCommand);
             }
 
-            foreach (var room in Map.Rooms.Where(x => x.Type == RoomType.LczChkpA || x.Type == RoomType.LczChkpB))
+            foreach (var room in Room.List.Where(x => x.Type == RoomType.LczChkpA || x.Type == RoomType.LczChkpB))
             {
                 var door = DoorUtils.SpawnDoor(DoorUtils.DoorType.LCZ_BREAKABLE, room, new Vector3(1.5f, 0f, -1f), Vector3.up * 90f, new Vector3(3.5f, 1f, 1f), false);
                 door.gameObject.SetActive(false);
@@ -72,7 +72,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundStarted()
         {
-            var scpSpawn = Map.Doors.First(x => x.Type == DoorType.Scp173Gate);
+            var scpSpawn = Door.List.First(x => x.Type == DoorType.Scp173Gate);
             scpSpawn.ChangeLock(DoorLockType.AdminCommand);
 
             Timing.CallDelayed(25f, () =>
@@ -105,7 +105,7 @@ namespace Mistaken.EventManager.Events
 
             Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Team == Team.SCP)
+                if (ev.Player.Role.Team == Team.SCP)
                 {
                     ev.Player.SlowChangeRole(RoleType.Scp93953, RoleType.Scp173.GetRandomSpawnProperties().Item1);
                     ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["SCP_Info"]);

@@ -62,7 +62,7 @@ namespace Mistaken.EventManager.Events
             this.mother.Broadcast(10, EventManager.EMLB + this.Translations["Mother"]);
             foreach (var item in players)
             {
-                item.Role = RoleType.ClassD;
+                item.Role.Type = RoleType.ClassD;
                 item.Broadcast(10, EventManager.EMLB + this.Translations["D"]);
             }
         }
@@ -75,13 +75,13 @@ namespace Mistaken.EventManager.Events
 
         private void Map_GeneratorActivated(Exiled.Events.EventArgs.GeneratorActivatedEventArgs ev)
         {
-            if (Map.ActivatedGenerators > 4)
+            if (Generator.List.Count(x => x.IsEngaged) > 4)
                 this.OnEndMorbus();
         }
 
         private void Player_ActivatingGenerator(Exiled.Events.EventArgs.ActivatingGeneratorEventArgs ev)
         {
-            ev.Generator._totalActivationTime = 180;
+            ev.Generator.ActivationTime = 180;
         }
 
         private void OnEndMorbus()

@@ -37,31 +37,31 @@ namespace Mistaken.EventManager.Events
             this.tickets["CI"] = 0;
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            var door = Map.Doors.First(x => x.Type == DoorType.CheckpointEntrance);
+            var door = Door.List.First(x => x.Type == DoorType.CheckpointEntrance);
             door.ChangeLock(DoorLockType.DecontEvacuate);
             door.IsOpen = true;
-            var randomroom = Map.Rooms.Where(r => r.Type == RoomType.Hcz079 || r.Type == RoomType.Hcz106 || r.Type == RoomType.HczChkpA || r.Type == RoomType.HczChkpB).ToList();
+            var randomroom = Room.List.Where(r => r.Type == RoomType.Hcz079 || r.Type == RoomType.Hcz106 || r.Type == RoomType.HczChkpA || r.Type == RoomType.HczChkpB).ToList();
             this.mtfRoom = randomroom[UnityEngine.Random.Range(0, randomroom.Count)];
-            foreach (var room in Map.Rooms)
+            foreach (var room in Room.List)
             {
                 if (Vector3.Distance(room.Position, this.mtfRoom.Position) >= 90 && randomroom.Contains(room) && this.ciRoom == null)
                     this.ciRoom = room;
             }
 
             if (this.ciRoom == null)
-                this.ciRoom = Map.Rooms.First(x => Vector3.Distance(x.Position, this.mtfRoom.Position) >= 70 && x.Zone == ZoneType.HeavyContainment);
+                this.ciRoom = Room.List.First(x => Vector3.Distance(x.Position, this.mtfRoom.Position) >= 70 && x.Zone == ZoneType.HeavyContainment);
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.PickingUpItem += this.Player_PickingUpItem;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
             Exiled.Events.Handlers.Player.DroppingItem += this.Player_DroppingItem;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            this.flagCI = new Flashlight(ItemType.Flashlight).Spawn(this.ciRoom.Position + (Vector3.up * 2));
-            this.flagMTF = new Flashlight(ItemType.Flashlight).Spawn(this.mtfRoom.Position + (Vector3.up * 2));
-            foreach (var e in Map.Lifts)
+            this.flagCI = Item.Create(ItemType.Flashlight).Spawn(this.ciRoom.Position + (Vector3.up * 2));
+            this.flagMTF = Item.Create(ItemType.Flashlight).Spawn(this.mtfRoom.Position + (Vector3.up * 2));
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                if (e.elevatorName.StartsWith("El") || e.elevatorName.StartsWith("SCP") || e.elevatorName == string.Empty)
-                    e.Network_locked = true;
+                if (e.Name.StartsWith("El") || e.Name.StartsWith("SCP") || e.Name == string.Empty)
+                    e.IsLocked = true;
             }
         }
 
@@ -122,7 +122,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.IsAllowed)
             {
-                var team = ev.Target.Team;
+                var team = ev.Target.Role.Team;
                 if (team == Team.CHI)
                     this.tickets["MTF"] += 1;
                 else
@@ -137,7 +137,7 @@ namespace Mistaken.EventManager.Events
         {
             Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Team == Team.MTF)
+                if (ev.Player.Role.Team == Team.MTF)
                     ev.Player.RemoveItem(ev.Player.Items.FirstOrDefault(x => x.Type == ItemType.GrenadeHE));
             });
         }
@@ -146,7 +146,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.Pickup.Serial == this.flagMTF.Serial)
             {
-                if (ev.Player.Team == Team.MTF)
+                if (ev.Player.Role.Team == Team.MTF)
                 {
                     ev.IsAllowed = false;
                     return;
@@ -156,7 +156,7 @@ namespace Mistaken.EventManager.Events
             }
             else if (ev.Pickup.Serial == this.flagCI.Serial)
             {
-                if (ev.Player.Team == Team.CHI)
+                if (ev.Player.Role.Team == Team.CHI)
                 {
                     ev.IsAllowed = false;
                     return;

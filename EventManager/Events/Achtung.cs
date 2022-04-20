@@ -79,8 +79,8 @@ namespace Mistaken.EventManager.Events
         {
             for (; count > 0; count--)
             {
-                var grenade = new Throwable(ItemType.GrenadeHE, player);
-                grenade.Throw(player.Position, Vector3.zero);
+                var grenade = Item.Create(ItemType.GrenadeHE, player).Spawn(player.Position);
+                ((InventorySystem.Items.ThrowableProjectiles.ExplosionGrenade)grenade.Base).ServerActivate();
             }
         }
     }

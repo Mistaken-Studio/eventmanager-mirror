@@ -31,7 +31,7 @@ namespace Mistaken.EventManager.Events
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.GateA || door.Type == DoorType.GateB || door.Type == DoorType.Scp079First)
                 {
@@ -77,7 +77,7 @@ namespace Mistaken.EventManager.Events
                         ev.Player.Position = RoleType.Scp93953.GetRandomSpawnProperties().Item1;
                         break;
                     case RoleType.FacilityGuard:
-                        ev.Player.Position = Map.Doors.First(x => x.Type == DoorType.Scp079First).Base.transform.position + (Vector3.up * 2);
+                        ev.Player.Position = Door.List.First(x => x.Type == DoorType.Scp079First).Base.transform.position + (Vector3.up * 2);
                         break;
                     case RoleType.Scp93953:
                     case RoleType.Scp93989:

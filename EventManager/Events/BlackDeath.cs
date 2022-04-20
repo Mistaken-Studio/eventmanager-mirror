@@ -37,14 +37,14 @@ namespace Mistaken.EventManager.Events
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
-            var rooms = Map.Rooms.ToList();
+            var rooms = Room.List.ToList();
             rooms.RemoveAll(x => x.Zone != ZoneType.HeavyContainment);
             for (int i = 0; i < 5; i++)
             {
                 if (rooms.Count == 0)
                     break;
                 var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
-                new Item(ItemType.KeycardNTFCommander).Spawn(room.Position + (Vector3.up * 2));
+                Item.Create(ItemType.KeycardNTFCommander).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
 
@@ -53,7 +53,7 @@ namespace Mistaken.EventManager.Events
                 if (rooms.Count == 0)
                     break;
                 var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
-                new Throwable(ItemType.GrenadeFlash).Spawn(room.Position + (Vector3.up * 2));
+                Item.Create(ItemType.GrenadeFlash).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
 
@@ -62,7 +62,7 @@ namespace Mistaken.EventManager.Events
                 if (rooms.Count == 0)
                     break;
                 var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
-                new Flashlight(ItemType.Flashlight).Spawn(room.Position + (Vector3.up * 2));
+                Item.Create(ItemType.Flashlight).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
 
@@ -73,8 +73,8 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.EnteringPocketDimension += this.Player_EnteringPocketDimension;
             Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
-            this.classDSpawn = Map.Doors.First(d => d.Type == DoorType.HczArmory).Base.transform.position + Vector3.up;
-            foreach (var door in Map.Doors)
+            this.classDSpawn = Door.List.First(d => d.Type == DoorType.HczArmory).Base.transform.position + Vector3.up;
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.HczArmory)
                 {
@@ -87,10 +87,10 @@ namespace Mistaken.EventManager.Events
                     door.ChangeLock(DoorLockType.DecontLockdown);
             }
 
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                if (e.Type() != ElevatorType.Nuke)
-                    e.Network_locked = true;
+                if (e.Type != ElevatorType.Nuke)
+                    e.IsLocked = true;
             }
         }
 
@@ -124,8 +124,8 @@ namespace Mistaken.EventManager.Events
 
         private void Player_ActivatingGenerator(Exiled.Events.EventArgs.ActivatingGeneratorEventArgs ev)
         {
-            if (ev.Generator._totalActivationTime > 180f)
-                ev.Generator._totalActivationTime = 180f;
+            if (ev.Generator.ActivationTime > 180f)
+                ev.Generator.ActivationTime = 180f;
         }
 
         private void Player_EnteringPocketDimension(Exiled.Events.EventArgs.EnteringPocketDimensionEventArgs ev)
@@ -147,7 +147,7 @@ namespace Mistaken.EventManager.Events
 
         private void Map_GeneratorActivated(Exiled.Events.EventArgs.GeneratorActivatedEventArgs ev)
         {
-            if (Map.ActivatedGenerators > 1)
+            if (Generator.List.Count(x => x.IsEngaged) > 1)
             {
                 Cassie.Message("ALL GENERATORS HAVE BEEN SUCCESSFULLY ENGAGED . SCP 1 0 6 RECONTAINMENT SEQUENCE COMMENCING IN T MINUS 1 MINUTE", false, true);
                 Timing.CallDelayed(60f, () =>

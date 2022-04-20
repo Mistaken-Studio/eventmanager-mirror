@@ -32,7 +32,7 @@ namespace Mistaken.EventManager.Events
         {
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RespawningTeam += this.Server_RespawningTeam;
-            Exiled.Events.Handlers.Player.ItemUsed += this.Player_ItemUsed;
+            Exiled.Events.Handlers.Player.UsedItem += this.Player_UsedItem;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
             Exiled.Events.Handlers.Player.Hurting += this.Player_Hurting;
@@ -42,7 +42,7 @@ namespace Mistaken.EventManager.Events
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RespawningTeam -= this.Server_RespawningTeam;
-            Exiled.Events.Handlers.Player.ItemUsed -= this.Player_ItemUsed;
+            Exiled.Events.Handlers.Player.UsedItem -= this.Player_UsedItem;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Dying -= this.Player_Dying;
             Exiled.Events.Handlers.Player.Hurting -= this.Player_Hurting;
@@ -56,7 +56,7 @@ namespace Mistaken.EventManager.Events
         {
             this.infected.Clear();
 
-            foreach (var door in Map.Doors.Where(x => x.Type == DoorType.GateA || x.Type == DoorType.GateB))
+            foreach (var door in Door.List.Where(x => x.Type == DoorType.GateA || x.Type == DoorType.GateB))
             {
                 door.IsOpen = true;
                 door.ChangeLock(DoorLockType.NoPower);
@@ -71,7 +71,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (!this.Active)
                     return;
-                foreach (var door in Map.Doors)
+                foreach (var door in Door.List)
                 {
                     if (door.RequiredPermissions.RequiredPermissions != Interactables.Interobjects.DoorUtils.KeycardPermissions.None)
                     {
@@ -94,7 +94,7 @@ namespace Mistaken.EventManager.Events
                         foreach (var player in ev.Players)
                         {
                             if (converter % 1 == 0)
-                                player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                                player.Position = Room.List.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
                             else
                                 player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
 
@@ -108,7 +108,7 @@ namespace Mistaken.EventManager.Events
                         foreach (var player in ev.Players)
                         {
                             if (converter % 1 == 0)
-                                player.Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                                player.Position = Room.List.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
                             else
                                 player.SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
 
@@ -119,7 +119,7 @@ namespace Mistaken.EventManager.Events
                     break;
                 default:
                     {
-                        ev.Players[0].Position = Map.Rooms.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
+                        ev.Players[0].Position = Room.List.First(x => x.Type == RoomType.EzGateA).Position + (Vector3.up * 2);
                         for (int i = 1; i < ev.Players.Count; i++)
                             ev.Players[i].SlowChangeRole(RoleType.Scp0492, RoleType.NtfCaptain.GetRandomSpawnProperties().Item1);
                     }
@@ -130,7 +130,7 @@ namespace Mistaken.EventManager.Events
             this.respawnCounter++;
         }
 
-        private void Player_ItemUsed(Exiled.Events.EventArgs.UsedItemEventArgs ev)
+        private void Player_UsedItem(Exiled.Events.EventArgs.UsedItemEventArgs ev)
         {
             if (ev.Item.Type == ItemType.SCP500)
                 this.infected[ev.Player] = false;
@@ -155,7 +155,7 @@ namespace Mistaken.EventManager.Events
         {
             if (this.infected[ev.Target])
             {
-                Timing.CallDelayed(1f, () => ev.Target.Role = RoleType.Scp0492);
+                Timing.CallDelayed(1f, () => ev.Target.Role.Type = RoleType.Scp0492);
                 this.infected[ev.Target] = false;
             }
         }

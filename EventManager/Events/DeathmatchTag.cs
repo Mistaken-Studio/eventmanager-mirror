@@ -40,7 +40,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
-            foreach (var door in Map.Doors)
+            foreach (var door in Door.List)
             {
                 if (door.Type == DoorType.GateA || door.Type == DoorType.GateB)
                     door.ChangeLock(DoorLockType.AdminCommand);
@@ -51,11 +51,10 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (var e in Map.Lifts)
+            foreach (var e in Exiled.API.Features.Lift.List)
             {
-                var elevatorType = e.Type();
-                if (elevatorType == ElevatorType.LczA || elevatorType == ElevatorType.LczB)
-                    e.Network_locked = true;
+                if (e.Type == ElevatorType.LczA || e.Type == ElevatorType.LczB)
+                    e.IsLocked = true;
             }
         }
 
@@ -89,7 +88,7 @@ namespace Mistaken.EventManager.Events
                             player.SlowChangeRole(this.RandomTeamRole(Team.MTF), RoleType.Scp096.GetRandomSpawnProperties().Item1);
                             break;
                         case 2:
-                            player.SlowChangeRole(this.RandomTeamRole(Team.MTF), Map.Doors.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2));
+                            player.SlowChangeRole(this.RandomTeamRole(Team.MTF), Door.List.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2));
                             break;
                     }
 
@@ -117,7 +116,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.IsAllowed)
             {
-                var team = ev.Target.Team;
+                var team = ev.Target.Role.Team;
                 if (team == Team.CHI)
                     this.tickets["MTF"] += 1;
                 else
@@ -140,7 +139,7 @@ namespace Mistaken.EventManager.Events
                                 respPoint = RoleType.Scp096.GetRandomSpawnProperties().Item1;
                                 break;
                             default:
-                                respPoint = Map.Doors.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2);
+                                respPoint = Door.List.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2);
                                 break;
                         }
                     }
@@ -154,7 +153,7 @@ namespace Mistaken.EventManager.Events
         {
             Timing.CallDelayed(1f, () =>
             {
-                if (ev.Player.Team == Team.MTF)
+                if (ev.Player.Role.Team == Team.MTF)
                     ev.Player.RemoveItem(ev.Player.Items.FirstOrDefault(x => x.Type == ItemType.GrenadeHE));
             });
         }
