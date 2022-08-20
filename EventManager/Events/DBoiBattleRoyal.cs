@@ -55,7 +55,7 @@ namespace Mistaken.EventManager.Events
                     door.ChangeLock(DoorLockType.DecontEvacuate);
                     door.IsOpen = true;
                 }
-                else if (door.Type == DoorType.Scp914)
+                else if (door.Type == DoorType.Scp914Gate)
                     door.ChangeLock(DoorLockType.AdminCommand);
                 else
                     door.IsOpen = true;

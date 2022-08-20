@@ -78,10 +78,7 @@ namespace Mistaken.EventManager.Events
         private void DropGrenadeUnder(Player player, ushort count = 1)
         {
             for (; count > 0; count--)
-            {
-                var grenade = Item.Create(ItemType.GrenadeHE, player).Spawn(player.Position);
-                ((InventorySystem.Items.ThrowableProjectiles.ExplosionGrenade)grenade.Base).ServerActivate();
-            }
+                ((ExplosiveGrenade)Item.Create(ItemType.GrenadeHE)).SpawnActive(player.Position);
         }
     }
 }

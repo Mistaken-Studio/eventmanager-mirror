@@ -234,7 +234,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                     door.ChangeLock(DoorLockType.DecontLockdown);
-                else if (door.Type == DoorType.Scp012 || door.Type == DoorType.Scp914 || door.Type == DoorType.Scp012Bottom || door.Type == DoorType.LczArmory)
+                else if (door.Type == DoorType.Scp330 || door.Type == DoorType.Scp914Gate || door.Type == DoorType.Scp330Chamber || door.Type == DoorType.LczArmory)
                 {
                     door.IsOpen = true;
                     door.ChangeLock(DoorLockType.AdminCommand);
@@ -739,7 +739,7 @@ namespace Mistaken.EventManager.Events
 
                                     case "lock914":
                                         {
-                                            var door = Door.List.First(x => x.Type == DoorType.Scp914);
+                                            var door = Door.List.First(x => x.Type == DoorType.Scp914Gate);
                                             door.IsOpen = false;
                                             Timing.CallDelayed(15f, () => door.IsOpen = true);
 

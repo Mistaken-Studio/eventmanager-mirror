@@ -48,7 +48,7 @@ namespace Mistaken.EventManager.Events
                     this.checkpointdoors.Add(door);
                     door.ChangeLock(DoorLockType.DecontLockdown);
                 }
-                else if (door.Type == DoorType.Scp012 || door.Type == DoorType.Scp914)
+                else if (door.Type == DoorType.Scp330 || door.Type == DoorType.Scp330Chamber || door.Type == DoorType.Scp914Gate)
                     door.ChangeLock(DoorLockType.AdminCommand);
             }
 
