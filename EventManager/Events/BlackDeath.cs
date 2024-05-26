@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class BlackDeath : IEMEventClass
+    internal class BlackDeath : EventBase
     {
         public override string Id => "bdeath";
 
@@ -25,16 +25,16 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "BlackDeath";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "SCP_Info", "Jesteś <color=gray>SCP-106</color>. Twoim zadaniem jest złapanie wszystkich <color=orange>Klas D</color> zanim włączą wszystkie <color=yellow>generatory</color>. Powodzenia!" },
             { "D_Info", "Jesteś <color=orange>Klasą D</color>. Twoim zadaniem jest włączenie wszystkich <color=yellow>generatorów</color>. Nie daj się złapać <color=gray>SCP-106</color> (<color=yellow>natychmiastowa śmierć</color>)." },
             { "D_Death", "Liczne oparzenia na ciele wskazują na działanie wysoko żrącej substancji" },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             var rooms = Room.List.ToList();
@@ -43,7 +43,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (rooms.Count == 0)
                     break;
-                var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
+                var room = rooms[Random.Range(0, rooms.Count)];
                 Item.Create(ItemType.KeycardNTFCommander).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
@@ -52,7 +52,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (rooms.Count == 0)
                     break;
-                var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
+                var room = rooms[Random.Range(0, rooms.Count)];
                 Item.Create(ItemType.GrenadeFlash).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
@@ -61,7 +61,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (rooms.Count == 0)
                     break;
-                var room = rooms[UnityEngine.Random.Range(0, rooms.Count)];
+                var room = rooms[Random.Range(0, rooms.Count)];
                 Item.Create(ItemType.Flashlight).Spawn(room.Position + (Vector3.up * 2));
                 rooms.Remove(room);
             }
@@ -94,7 +94,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Map.GeneratorActivated -= this.Map_GeneratorActivated;
@@ -111,7 +111,7 @@ namespace Mistaken.EventManager.Events
         {
             Map.TurnOffAllLights(float.MaxValue);
             var players = RealPlayers.List.ToList();
-            var scp = players[UnityEngine.Random.Range(0, players.Count())];
+            var scp = players[Random.Range(0, players.Count())];
             scp.SlowChangeRole(RoleType.Scp106);
             scp.Broadcast(8, EventManager.EMLB + this.Translations["SCP_Info"], shouldClearPrevious: true);
             players.Remove(scp);

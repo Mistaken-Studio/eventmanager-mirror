@@ -7,9 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Interactables.Interobjects.DoorUtils;
 using MEC;
 using Mistaken.API;
 using PlayerStatsSystem;
@@ -17,7 +15,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class DBoiBattleRoyalMicroHid : IEMEventClass, IAnnouncePlayersAlive, IWinOnLastAlive
+    internal class DBoiBattleRoyalMicroHid : EventBase, IAnnouncePlayersAlive, IWinOnLastAlive
     {
         public override string Id => "dbbrmhid";
 
@@ -25,19 +23,19 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "DBoiBattleRoyaleMicroHid";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "D_Kill", "Zostałeś zdekontamionowany" },
         };
 
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.decontaminated = 0;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
-            Mistaken.API.Utilities.Map.TeslaMode = Mistaken.API.Utilities.TeslaMode.DISABLED_FOR_ALL;
+            API.Utilities.Map.TeslaMode = API.Utilities.TeslaMode.DISABLED_FOR_ALL;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
@@ -62,7 +60,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
         }
@@ -74,7 +72,7 @@ namespace Mistaken.EventManager.Events
             var rooms = Room.List.Where(x => x.Type != RoomType.EzShelter && x.Type != RoomType.HczTesla && x.Type != RoomType.HczNuke && x.Type != RoomType.Surface && x.Type != RoomType.Hcz049 && x.Type != RoomType.Pocket && x.Type != RoomType.Hcz106 && x.Type != RoomType.HczHid && x.Type != RoomType.Lcz914 && x.Type != RoomType.Lcz173 && x.Type != RoomType.EzCollapsedTunnel && x.Type != RoomType.Lcz330).ToList();
             foreach (var player in RealPlayers.List)
             {
-                int random = UnityEngine.Random.Range(0, rooms.Count());
+                int random = Random.Range(0, rooms.Count());
                 var room = rooms[random];
                 player.SlowChangeRole(RoleType.ClassD, room.Position + (Vector3.up * 2));
             }
@@ -89,7 +87,7 @@ namespace Mistaken.EventManager.Events
                 return;
             if (this.decontaminated < 2)
             {
-                var rand = UnityEngine.Random.Range(0, 3);
+                var rand = Random.Range(0, 3);
                 if (rand == 0)
                 {
                     if (!Round.IsStarted)
@@ -110,7 +108,7 @@ namespace Mistaken.EventManager.Events
                 }
 
                 this.decontaminated++;
-                MEC.Timing.CallDelayed(300, () =>
+                Timing.CallDelayed(300, () =>
                 {
                     if (!Round.IsStarted)
                         return;
@@ -119,7 +117,7 @@ namespace Mistaken.EventManager.Events
             }
             else
             {
-                var rand = UnityEngine.Random.Range(0, 3);
+                var rand = Random.Range(0, 3);
                 if (rand == 0)
                 {
                     if (!Round.IsStarted)
@@ -139,7 +137,7 @@ namespace Mistaken.EventManager.Events
                     this.DecontaminateLCZ_HCZ();
                 }
 
-                MEC.Timing.CallDelayed(300, () =>
+                Timing.CallDelayed(300, () =>
                 {
                     if (!Round.IsStarted)
                         return;
@@ -152,17 +150,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Light Containment Zone Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 Light Containment Zone Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 Light Containment Zone is under lockdown . All alive in it are now terminated", false, true);
-                    MEC.Timing.CallDelayed(38, () =>
+                    Timing.CallDelayed(38, () =>
                     {
                         if (!this.Active)
                             return;
@@ -174,7 +172,7 @@ namespace Mistaken.EventManager.Events
                                 player.Hurt(new CustomReasonDamageHandler(this.Translations["D_Kill"]));
                         }
 
-                        MEC.Timing.CallDelayed(60, () =>
+                        Timing.CallDelayed(60, () =>
                         {
                             foreach (var e in Exiled.API.Features.Lift.List)
                             {
@@ -191,17 +189,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Heavy Containment Zone Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 Heavy Containment Zone Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 Heavy Containment Zone is under lockdown . All alive in it are now terminated", false, true);
-                    MEC.Timing.CallDelayed(38, () =>
+                    Timing.CallDelayed(38, () =>
                     {
                         if (!this.Active)
                             return;
@@ -223,7 +221,7 @@ namespace Mistaken.EventManager.Events
                                 player.Hurt(new CustomReasonDamageHandler(this.Translations["D_Kill"]));
                         }
 
-                        MEC.Timing.CallDelayed(60, () =>
+                        Timing.CallDelayed(60, () =>
                         {
                             foreach (var e in Exiled.API.Features.Lift.List)
                             {
@@ -250,17 +248,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Entrance Zone Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 Entrance Zone Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 Entrance Zone is under lockdown . All alive in it are now terminated", false, true);
-                    MEC.Timing.CallDelayed(38, () =>
+                    Timing.CallDelayed(38, () =>
                     {
                         if (!this.Active)
                             return;
@@ -280,7 +278,7 @@ namespace Mistaken.EventManager.Events
                                 player.Hurt(new CustomReasonDamageHandler(this.Translations["D_Kill"]));
                         }
 
-                        MEC.Timing.CallDelayed(60, () =>
+                        Timing.CallDelayed(60, () =>
                         {
                             foreach (var door in Door.List)
                             {
@@ -301,17 +299,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 HEAVY Containment Zone AND ENTRANCE ZONE Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 HEAVY Containment Zone AND ENTRANCE ZONE Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 HEAVY Containment Zone AND ENTRANCE ZONE are under lockdown . All alive in them are now terminated", false, true);
-                    MEC.Timing.CallDelayed(40, () =>
+                    Timing.CallDelayed(40, () =>
                     {
                         if (!this.Active)
                             return;
@@ -331,17 +329,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Light Containment Zone AND ENTRANCE ZONE Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 Light Containment Zone AND ENTRANCE ZONE Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 Light Containment Zone AND ENTRANCE ZONE are under lockdown . All alive in them are now terminated", false, true);
-                    MEC.Timing.CallDelayed(40, () =>
+                    Timing.CallDelayed(40, () =>
                     {
                         if (!this.Active)
                             return;
@@ -371,17 +369,17 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(224, () =>
+            Timing.CallDelayed(224, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Light Containment Zone AND Heavy Containment ZONE Decontamination in t minus 1 minute", false, true);
-                MEC.Timing.CallDelayed(38, () =>
+                Timing.CallDelayed(38, () =>
                 {
                     if (!this.Active)
                         return;
                     Cassie.Message("Pitch_0.9 Light Containment Zone AND Heavy Containment ZONE Decontamination in t minus 30 seconds PITCH_1.0 . . . . . . Evacuate IMMEDIATELY . 20 . 19 . 18 . 17 . 16 . 15 . 14 . 13 . 12 . 11 . 10 seconds . 9 . 8 . 7 . 6 . 5 . 4 . 3 . 2 . 1 . . . Pitch_0.9 Light Containment Zone AND Heavy Containment ZONE are under lockdown . All alive in them are now terminated", false, true);
-                    MEC.Timing.CallDelayed(40, () =>
+                    Timing.CallDelayed(40, () =>
                     {
                         if (!this.Active)
                             return;
@@ -409,12 +407,12 @@ namespace Mistaken.EventManager.Events
         {
             if (!this.Active)
                 return;
-            MEC.Timing.CallDelayed(202, () =>
+            Timing.CallDelayed(202, () =>
             {
                 if (!this.Active)
                     return;
                 Cassie.Message("Pitch_0.9 Initiating nato_a warhead in 3 . 2 . 1 . ", false, true);
-                MEC.Timing.CallDelayed(8, () =>
+                Timing.CallDelayed(8, () =>
                 {
                     if (!this.Active)
                         return;

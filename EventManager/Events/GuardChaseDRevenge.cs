@@ -4,12 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
@@ -19,10 +17,11 @@ using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
 using UnityEngine;
 
+#pragma warning disable SA1402 // File may only contain a single type
+
 namespace Mistaken.EventManager.Events
 {
-#pragma warning disable SA1402
-    internal class GuardChaseDRevenge : IEMEventClass
+    internal class GuardChaseDRevenge : EventBase
     {
         public override string Id => "GCDR";
 
@@ -30,22 +29,22 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Guard Chase D Revenge";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "G_Info", "Jesteś <color=gray>Ochroniarzem</color>. Posiadasz nieskończoną ilość amunicji. Twoim zadaniem jest znalezienie i zabicie każdej <color=orange>Klasy D</color>." },
             { "D_Info", "Jesteś <color=orange>Klasą D</color>. Twoim zadaniem jest schowanie się/ucieczka przed <color=gray>Ochroniarzem</color>. Po 6 minutach dostaniecie Rewolwer z pomocą którego dokanacie odwetu." },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Events.DisabledPatchesHashSet.Add(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance));
             Exiled.Events.Events.Instance.ReloadDisabledPatches();
-            PluginHandler.Harmony.Patch(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler1", BindingFlags.NonPublic | BindingFlags.Static)));
-            PluginHandler.Harmony.Patch(typeof(BreakableWindow).GetMethod(nameof(BreakableWindow.Damage), BindingFlags.Public | BindingFlags.Instance), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler2", BindingFlags.NonPublic | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(AccessTools.Method(typeof(PlayerInteract), nameof(PlayerInteract.OnInteract)), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler1", BindingFlags.NonPublic | BindingFlags.Static)));
+            PluginHandler.Harmony.Patch(AccessTools.Method(typeof(BreakableWindow), nameof(BreakableWindow.Damage)), transpiler: new HarmonyMethod(typeof(EventPatches).GetMethod("Transpiler2", BindingFlags.NonPublic | BindingFlags.Static)));
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.Shooting += this.Player_Shooting;
@@ -72,7 +71,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             PluginHandler.Harmony.Unpatch(typeof(PlayerInteract).GetMethod(nameof(PlayerInteract.OnInteract), BindingFlags.NonPublic | BindingFlags.Instance), HarmonyPatchType.Prefix);
             PluginHandler.Harmony.Unpatch(typeof(BreakableWindow).GetMethod(nameof(BreakableWindow.Damage), BindingFlags.Public | BindingFlags.Instance), HarmonyPatchType.Prefix);
@@ -85,7 +84,7 @@ namespace Mistaken.EventManager.Events
         {
             Map.TurnOffAllLights(float.MaxValue);
             var players = RealPlayers.List.ToList();
-            var guard = players[UnityEngine.Random.Range(0, players.Count)];
+            var guard = players[Random.Range(0, players.Count)];
             players.Remove(guard);
             guard.SlowChangeRole(RoleType.FacilityGuard, Room.List.First(x => x.Type == RoomType.Surface).Position + Vector3.up);
             guard.Broadcast(8, EventManager.EMLB + this.Translations["G_Info"]);
@@ -178,6 +177,8 @@ namespace Mistaken.EventManager.Events
             }
         }
     }
+
+#pragma warning disable IDE0060 // Usuń nieużywany parametr
 
     [HarmonyPatch(typeof(PlayerInteract), nameof(PlayerInteract.OnInteract))]
     [HarmonyPatch(typeof(BreakableWindow), nameof(BreakableWindow.Damage))]

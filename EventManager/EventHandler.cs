@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="EMEvents.cs" company="Mistaken">
+// <copyright file="EventHandler.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
 // -----------------------------------------------------------------------
@@ -13,9 +13,8 @@ namespace Mistaken.EventManager
     /// <summary>
     /// EventManager related events.
     /// </summary>
-    public static class EMEvents
+    public static class EventHandler
     {
-#pragma warning disable CS0067
         /// <summary>
         /// Invoked when Event is invoked.
         /// </summary>
@@ -39,6 +38,5 @@ namespace Mistaken.EventManager
         /// <param name="ev">The <see cref="PlayerWinningEventEventArgs"/> instance.</param>
         public static void OnPlayerWinningEvent(PlayerWinningEventEventArgs ev)
             => PlayerWinningEvent.InvokeSafely(ev);
-#pragma warning restore CS0067
     }
 }

@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class DeathmatchTag : IEMEventClass
+    internal class DeathmatchTag : EventBase
     {
         public override string Id => "dmt";
 
@@ -23,16 +23,16 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "DeathmatchTag";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "CI", "Twoim zadanie jest zabicie członków <color=blue>MFO</color>, znajdziesz ich w <color=yellow>Heavy Containment Zone</color>" },
             { "MTF", "Twoim zadanie jest zabicie członków <color=green>CI</color>, znajdziesz ich w <color=yellow>Entrance Zone</color>" },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             Map.Pickups.ToList().ForEach(x => x.Destroy());
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             this.tickets["MTF"] = 0;
             this.tickets["CI"] = 0;
@@ -58,7 +58,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
@@ -66,7 +66,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
         }
 
-        private readonly Dictionary<string, int> tickets = new Dictionary<string, int>()
+        private readonly Dictionary<string, int> tickets = new ()
         {
             { "CI", 0 },
             { "MTF", 0 },
@@ -79,7 +79,7 @@ namespace Mistaken.EventManager.Events
             {
                 if (i % 2 != 0)
                 {
-                    switch (UnityEngine.Random.Range(0, 3))
+                    switch (Random.Range(0, 3))
                     {
                         case 0:
                             player.SlowChangeRole(this.RandomTeamRole(Team.MTF), RoleType.Scp93953.GetRandomSpawnProperties().Item1);
@@ -123,25 +123,19 @@ namespace Mistaken.EventManager.Events
                     this.tickets["CI"] += 1;
 
                 ev.Target.Broadcast(5, EventManager.EMLB + "Za chwilę się odrodzisz...");
-                MEC.Timing.CallDelayed(5f, () =>
+                Timing.CallDelayed(5f, () =>
                 {
                     Vector3 respPoint;
                     if (team == Team.MTF)
                         respPoint = RoleType.FacilityGuard.GetRandomSpawnProperties().Item1;
                     else
                     {
-                        switch (UnityEngine.Random.Range(0, 3))
+                        respPoint = Random.Range(0, 3) switch
                         {
-                            case 0:
-                                respPoint = RoleType.Scp93953.GetRandomSpawnProperties().Item1;
-                                break;
-                            case 1:
-                                respPoint = RoleType.Scp096.GetRandomSpawnProperties().Item1;
-                                break;
-                            default:
-                                respPoint = Door.List.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2);
-                                break;
-                        }
+                            0 => RoleType.Scp93953.GetRandomSpawnProperties().Item1,
+                            1 => RoleType.Scp096.GetRandomSpawnProperties().Item1,
+                            _ => Door.List.First(d => d.Type == DoorType.HczArmory).Position + (Vector3.up * 2),
+                        };
                     }
 
                     ev.Target.SlowChangeRole(team == Team.CHI ? this.RandomTeamRole(Team.MTF) : this.RandomTeamRole(Team.CHI), respPoint);

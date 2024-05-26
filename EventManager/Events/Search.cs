@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using MEC;
@@ -15,7 +14,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Search : IEMEventClass, IWinOnLastAlive
+    internal class Search : EventBase, IWinOnLastAlive, IWinOnEscape
     {
         public override string Id => "search";
 
@@ -23,15 +22,15 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Search";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "D_Info", "Musisz znaleźć MicroHID'a w HCZ i uciec z nim." },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
@@ -40,14 +39,14 @@ namespace Mistaken.EventManager.Events
             {
                 if (door.Nametag == string.Empty)
                     door.IsOpen = true;
-                else if (door.Type != DoorType.HID)
+                else if (door.Type == DoorType.HID)
                 {
-                    door.IsOpen = true;
+                    door.IsOpen = false;
                     door.ChangeLock(DoorLockType.Warhead);
                 }
                 else
                 {
-                    door.IsOpen = false;
+                    door.IsOpen = true;
                     door.ChangeLock(DoorLockType.Warhead);
                 }
             }
@@ -61,9 +60,10 @@ namespace Mistaken.EventManager.Events
             this.spawn = Room.List.First(x => x.Type == RoomType.EzGateB).transform.position + (Vector3.up * 2);
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
-            Mistaken.API.Utilities.Map.Blackout.Enabled = false;
+            LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = false;
+            API.Utilities.Map.Blackout.Enabled = false;
             Exiled.Events.Handlers.Player.Escaping -= this.Player_Escaping;
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
@@ -74,7 +74,7 @@ namespace Mistaken.EventManager.Events
         private void Server_RoundStarted()
         {
             Map.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
-            switch (UnityEngine.Random.Range(0, 7))
+            switch (Random.Range(0, 7))
             {
                 case 0:
                     {
@@ -119,24 +119,23 @@ namespace Mistaken.EventManager.Events
                     }
             }
 
-            Mistaken.API.Utilities.Map.Blackout.Delay = 60;
-            Mistaken.API.Utilities.Map.Blackout.Length = 30;
-            Mistaken.API.Utilities.Map.Blackout.Enabled = true;
+            API.Utilities.Map.Blackout.Delay = 60;
+            API.Utilities.Map.Blackout.Length = 30;
+            API.Utilities.Map.Blackout.Enabled = true;
         }
 
         private void Player_ChangingRole(Exiled.Events.EventArgs.ChangingRoleEventArgs ev)
         {
             if (ev.NewRole == RoleType.Spectator)
                 return;
+
             ev.Player.SlowChangeRole(RoleType.ClassD, this.spawn);
             Timing.CallDelayed(1f, () => ev.Player.AddItem(ItemType.Flashlight));
         }
 
         private void Player_Escaping(Exiled.Events.EventArgs.EscapingEventArgs ev)
         {
-            if (ev.Player.Items.Any(i => i.Type == ItemType.MicroHID))
-                this.OnEnd(ev.Player);
-            else
+            if (!ev.Player.Items.Any(i => i.Type == ItemType.MicroHID))
                 ev.IsAllowed = false;
         }
     }

@@ -5,16 +5,15 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using Mistaken.API;
-using Mistaken.API.Extensions;
-using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Achtung : IEMEventClass, IWinOnLastAlive, IAnnouncePlayersAlive
+    internal class Achtung : EventBase, IWinOnLastAlive, IAnnouncePlayersAlive
     {
         public override string Id => "achtung";
 
@@ -22,22 +21,22 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Achtung";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "D_Info", "Granaty pojawią się pod Tobą. Ostatni żywy wygrywa" },
         };
 
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
@@ -52,6 +51,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.NewRole == RoleType.Spectator)
                 return;
+
             ev.Player.SlowChangeRole(RoleType.ClassD, RoleType.Scp106.GetRandomSpawnProperties().Item1);
             ev.Player.Broadcast(8, EventManager.EMLB + this.Translations["D_Info"], shouldClearPrevious: true);
         }
@@ -63,14 +63,15 @@ namespace Mistaken.EventManager.Events
                 yield return MEC.Timing.WaitForSeconds(time);
                 if (time > 2)
                     time--;
-                foreach (var player in RealPlayers.List)
+
+                foreach (var player in RealPlayers.List.ToArray())
                 {
-                    if (player.Role == RoleType.Spectator)
+                    if (player.Role.Type == RoleType.Spectator)
                         continue;
 
                     this.DropGrenadeUnder(player);
                     if (time < 7)
-                        MEC.Timing.CallDelayed(UnityEngine.Random.Range(0f, 2f), () => this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(1, 3)));
+                        EventManager.Instance.CallDelayed(UnityEngine.Random.Range(0f, 2f), () => this.DropGrenadeUnder(player, (ushort)UnityEngine.Random.Range(1, 3)), "EventManager_DropGrenadeUnder");
                 }
             }
         }

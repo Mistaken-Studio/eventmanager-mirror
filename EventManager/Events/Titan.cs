@@ -7,16 +7,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using Mistaken.API;
 using Mistaken.API.Shield;
 
+#pragma warning disable SA1402 // File may only contain a single type
+
 namespace Mistaken.EventManager.Events
 {
-#pragma warning disable SA1402
-    internal class Titan : IEMEventClass
+    internal class Titan : EventBase
     {
         public override string Id => "titan";
 
@@ -24,15 +24,15 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Titan";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "T_Info", "Jesteś <color=green>Tytanem</color>. Twoim zadaniem jest rozprawienie się z <color=blue>MFO</color> atakujących Ciebie." },
             { "MTF_Info", "Waszym zadaniem (<color=blue>MFO</color>) jest zabicie <color=green>Tytana</color>, który znajduje się na spawnie CI. Uważajcie!" },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
@@ -43,7 +43,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
@@ -58,25 +58,13 @@ namespace Mistaken.EventManager.Events
             titan.Broadcast(8, EventManager.EMLB + this.Translations["T_Info"]);
             foreach (var player in players)
             {
-                switch (UnityEngine.Random.Range(0, 3))
-                {
-                    case 0:
-                        player.SlowChangeRole(RoleType.NtfPrivate);
-                        break;
-                    case 1:
-                        player.SlowChangeRole(RoleType.NtfSergeant);
-                        break;
-                    case 2:
-                        player.SlowChangeRole(RoleType.NtfCaptain);
-                        break;
-                }
-
+                player.SlowChangeRole(this.RandomTeamRole(Team.MTF));
                 player.Broadcast(8, EventManager.EMLB + this.Translations["MTF_Info"]);
             }
 
             Timing.CallDelayed(0.2f, () =>
             {
-                TitanShield.Ini<TitanShield>(titan);
+                Shield.Ini<TitanShield>(titan);
                 titan.RemoveItem(titan.Items.First(x => x.Type == ItemType.KeycardChaosInsurgency));
                 titan.AddItem(ItemType.GunE11SR);
                 titan.AddItem(ItemType.GunShotgun);
@@ -90,9 +78,9 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (RealPlayers.List.Count(x => x.Role.Team == Team.MTF) == 0)
+            if (RealPlayers.Get(Team.MTF).Count() == 0)
                 this.OnEnd($"<color=green>Tytan {ev.Killer.Nickname}</color> wygrał!");
-            else if (RealPlayers.List.FirstOrDefault(x => x.Role == RoleType.ChaosMarauder) == default)
+            else if (RealPlayers.Get(RoleType.ChaosMarauder).Count() == 0)
                 this.OnEnd("<color=blue>MFO</color> wygrywa!");
         }
     }

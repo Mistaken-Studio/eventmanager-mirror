@@ -3,7 +3,7 @@
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
 // -----------------------------------------------------------------------
-
+/*
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    /*internal class OOoX : IEMEventClass
+    internal class OOoX : EventBase
     {
         public override string Id => "ooox";
 
@@ -26,12 +26,7 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "OOoX";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
-        {
-            // { "", "" }
-        };
-
-        public override void OnIni()
+        public override void Initialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
@@ -41,7 +36,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.Left += this.Player_Left;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
@@ -60,7 +55,7 @@ namespace Mistaken.EventManager.Events
         private void Server_RoundStarted()
         {
             this.winners.Clear();
-            this.eventWinners = File.ReadAllLines(EventManager.BasePath + @"\winners.txt");
+            this.eventWinners = File.ReadAllLines(EventManager.Path + @"\winners.txt");
             var players = RealPlayers.List.Where(x => this.eventWinners.Contains(x.UserId)).ToList();
             Vector3[] spawnPositions = new Vector3[players.Count];
             for (int i = 0; i < players.Count; i++)
@@ -161,5 +156,6 @@ namespace Mistaken.EventManager.Events
                 this.winners.Remove(ev.Player);
             }
         }
-    }*/
+    }
 }
+*/

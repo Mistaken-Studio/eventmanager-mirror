@@ -10,7 +10,7 @@ using Exiled.API.Features;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Blank : IEMEventClass
+    internal class Blank : EventBase
     {
         public override string Id => "blank";
 
@@ -18,20 +18,15 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Blank";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public override void Initialize()
         {
-            // { "", "" }
-        };
-
-        public override void OnIni()
-        {
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
         }
     }

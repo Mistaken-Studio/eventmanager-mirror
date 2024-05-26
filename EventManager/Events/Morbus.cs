@@ -12,7 +12,7 @@ using PlayerStatsSystem;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Morbus : IEMEventClass, ISpawnRandomItems
+    internal class Morbus : EventBase, ISpawnRandomItems
     {
         public override string Id => "morbus";
 
@@ -20,16 +20,16 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Morbus";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "Mother", string.Empty },
             { "D", string.Empty },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
@@ -37,7 +37,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.ActivatingGenerator += this.Player_ActivatingGenerator;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
@@ -45,9 +45,9 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.ActivatingGenerator -= this.Player_ActivatingGenerator;
         }
 
-        private readonly List<int> morbusesFirst = new List<int>();
+        private readonly List<int> morbusesFirst = new ();
 
-        private readonly List<int> morbusesSecond = new List<int>();
+        private readonly List<int> morbusesSecond = new ();
 
         private Player mother;
 

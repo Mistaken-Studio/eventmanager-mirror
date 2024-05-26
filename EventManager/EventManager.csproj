@@ -11,6 +11,7 @@
     <RootNamespace>Mistaken.EventManager</RootNamespace>
     <AssemblyName>Mistaken.EventManager</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>9.0</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -38,6 +39,7 @@
   <ItemGroup>
     <Reference Include="Exiled.API" HintPath="$(MISTAKEN_REFERENCES)\Exiled.API.dll" />
     <Reference Include="Exiled.Events" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Events.dll" />
+    <Reference Include="Exiled.Permissions" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Permissions.dll" />
     <Reference Include="Mistaken.Updater" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.Updater.dll" />
     <Reference Include="0Mistaken.API" HintPath="$(MISTAKEN_REFERENCES)\0Mistaken.API.dll" />
     <Reference Include="0Harmony" HintPath="$(MISTAKEN_REFERENCES)\0Harmony.dll" />
@@ -59,9 +61,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandHandler.cs" />
-    <Compile Include="EMEvents.cs" />
+    <Compile Include="EventHandler.cs" />
     <Compile Include="EventArgs\AdminInvokingEventEventArgs.cs" />
     <Compile Include="EventArgs\PlayerWinningEventEventArgs.cs" />
+    <Compile Include="EventBase.cs" />
     <Compile Include="EventManager.cs" />
     <Compile Include="Events\Achtung.cs" />
     <Compile Include="Events\BlackDeath.cs" />
@@ -86,8 +89,8 @@
     <Compile Include="Events\WarheadRun.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Interfaces\IAnnouncePlayersAlive.cs" />
-    <Compile Include="IEMEventClass.cs" />
     <Compile Include="Interfaces\IEndOnNoAlive.cs" />
+    <Compile Include="Interfaces\IRequiredPlayers.cs" />
     <Compile Include="Interfaces\ISpawnRandomItems.cs" />
     <Compile Include="Interfaces\IWinOnEscape.cs" />
     <Compile Include="Interfaces\IWinOnLastAlive.cs" />

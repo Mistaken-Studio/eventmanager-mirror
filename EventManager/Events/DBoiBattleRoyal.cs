@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class DBoiBattleRoyal : IEMEventClass, IAnnouncePlayersAlive, ISpawnRandomItems, IWinOnLastAlive
+    internal class DBoiBattleRoyal : EventBase, IAnnouncePlayersAlive, ISpawnRandomItems, IWinOnLastAlive
     {
         public override string Id => "dbbr";
 
@@ -24,21 +24,21 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "DBoiBattleRoyale";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "D_Kill", "Zostałeś zdekontamionowany" },
         };
 
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.stats.Clear();
             this.decontaminated = 0;
-            Mistaken.API.Utilities.Map.TeslaMode = Mistaken.API.Utilities.TeslaMode.DISABLED_FOR_ALL;
+            API.Utilities.Map.TeslaMode = API.Utilities.TeslaMode.DISABLED_FOR_ALL;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
@@ -62,13 +62,13 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
         }
 
-        private readonly Dictionary<Player, int> stats = new Dictionary<Player, int>();
+        private readonly Dictionary<Player, int> stats = new ();
 
         private int decontaminated = 0;
 
@@ -77,7 +77,7 @@ namespace Mistaken.EventManager.Events
             var rooms = Room.List.Where(x => x.Type != RoomType.EzShelter && x.Type != RoomType.HczTesla && x.Type != RoomType.HczNuke && x.Type != RoomType.Surface && x.Type != RoomType.Hcz049 && x.Type != RoomType.Pocket && x.Type != RoomType.Hcz106 && x.Type != RoomType.HczHid && x.Type != RoomType.Lcz914 && x.Type != RoomType.Lcz173 && x.Type != RoomType.EzCollapsedTunnel && x.Type != RoomType.Lcz330).ToList();
             foreach (var player in RealPlayers.RandomList)
             {
-                int random = UnityEngine.Random.Range(0, rooms.Count());
+                int random = Random.Range(0, rooms.Count());
                 var room = rooms[random];
                 player.SlowChangeRole(RoleType.ClassD, room.Position + (Vector3.up * 2));
             }
@@ -101,7 +101,7 @@ namespace Mistaken.EventManager.Events
                 return;
             if (this.decontaminated < 2)
             {
-                var rand = UnityEngine.Random.Range(0, 3);
+                var rand = Random.Range(0, 3);
                 if (rand == 0)
                 {
                     if (!Round.IsStarted)
@@ -131,7 +131,7 @@ namespace Mistaken.EventManager.Events
             }
             else
             {
-                var rand = UnityEngine.Random.Range(0, 3);
+                var rand = Random.Range(0, 3);
                 if (rand == 0)
                 {
                     if (!Round.IsStarted)

@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Features;
@@ -12,7 +11,7 @@ using MEC;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class TryNotToBlink : IEMEventClass, IWinOnLastAlive
+    internal class TryNotToBlink : EventBase, IWinOnLastAlive
     {
         public override string Id => "tntb";
 
@@ -20,20 +19,16 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "TryNotToBlink";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public override void Initialize()
         {
-            // { "", "" }
-        };
-
-        public override void OnIni()
-        {
-            Map.Pickups.ToList().ForEach(x => x.Destroy());
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
+            foreach (var pickup in Map.Pickups.ToArray())
+                pickup.Destroy();
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
-            foreach (var door in Door.List)
+            foreach (var door in Door.List.ToArray())
             {
                 if (door.Type == DoorType.CheckpointLczA || door.Type == DoorType.CheckpointLczB)
                 {
@@ -51,7 +46,7 @@ namespace Mistaken.EventManager.Events
                 e.IsLocked = true;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
@@ -68,6 +63,7 @@ namespace Mistaken.EventManager.Events
         {
             if (ev.NewRole == RoleType.Spectator)
                 return;
+
             Timing.CallDelayed(1f, () =>
             {
                 if (ev.Player.Role.Team == Team.SCP)

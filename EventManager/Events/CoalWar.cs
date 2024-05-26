@@ -3,8 +3,8 @@
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
 // -----------------------------------------------------------------------
-
-/*using System;
+/*
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Exiled.API.Features;
@@ -17,11 +17,12 @@ using Mistaken.API;
 using PlayerStatsSystem;
 using UnityEngine;
 
+#pragma warning disable SA1402 // File may only contain a single type
+#pragma warning disable SA1313 // Parameter names should begin with lower-case letter
+
 namespace Mistaken.EventManager.Events
 {
-#pragma warning disable SA1402
-#pragma warning disable SA1313
-    internal class CoalWar : IEMEventClass, IWinOnLastAlive, IAnnouncePlayersAlive
+    internal class CoalWar : EventBase, IWinOnLastAlive, IAnnouncePlayersAlive
     {
         public override string Id => "cowar";
 
@@ -29,14 +30,14 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Coal War";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new Dictionary<string, string>()
         {
             { "D_Spawn", $"Walka <color=black>węglem</color>. <color={EventManager.Color}>Ostatni żywy wygrywa</color>" },
         };
 
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
             Mistaken.API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
@@ -46,7 +47,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.Escaping += this.Player_Escaping;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             PluginHandler.Harmony.Unpatch(typeof(ThrowableItem).GetMethod("ServerThrow", new Type[] { typeof(float), typeof(float), typeof(Vector3), typeof(Vector3) }), HarmonyPatchType.Prefix);
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
@@ -153,4 +154,5 @@ namespace Mistaken.EventManager.Events
             }
         }
     }
-}*/
+}
+*/

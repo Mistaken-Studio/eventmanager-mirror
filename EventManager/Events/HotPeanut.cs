@@ -5,17 +5,15 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using Mistaken.API;
-using Mistaken.API.Extensions;
 using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class HotPeanut : IEMEventClass, IAnnouncePlayersAlive, IWinOnLastAlive
+    internal class HotPeanut : EventBase, IAnnouncePlayersAlive, IWinOnLastAlive
     {
         public override string Id => "hp";
 
@@ -23,24 +21,19 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Hot Peanut";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
-        {
-            // { "", "" }
-        };
-
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.spawn = RoleType.Scp106.GetRandomSpawnProperties().Item1;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;

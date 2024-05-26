@@ -10,180 +10,198 @@ using System.IO;
 using System.Linq;
 using CommandSystem;
 using Exiled.API.Features;
+using Mistaken.API;
 using Mistaken.API.Commands;
 using Mistaken.API.Extensions;
 using Mistaken.EventManager.EventArgs;
+using Mistaken.EventManager.Interfaces;
+
+#pragma warning disable SA1118 // Parameter spans multiple lines
 
 namespace Mistaken.EventManager
 {
-    [CommandSystem.CommandHandler(typeof(CommandSystem.RemoteAdminCommandHandler))]
+    [CommandHandler(typeof(RemoteAdminCommandHandler))]
     internal class CommandHandler : IBetterCommand, IPermissionLocked
     {
-        public static (bool, string[]) SetRWECommand(string[] args, Player admin)
-        {
-            if (!admin.CheckPermission(EventManager.Instance.Name + ".setrwevent"))
-                return (false, new string[] { "You can't use this command. No permission!" });
-            if (args.Length == 0)
-                return (false, new string[] { "Wrong args", "EventManager setrwevent [amount]" });
-            if (args[1] == string.Empty)
-                return (false, new string[] { "Wrong args", "EventManager setrwevent [amount]" });
-            var value = short.Parse(args[1]);
-            if (value < 0)
-                return (false, new string[] { "Number has to be non-negative short" });
-            EventManager.RWE = (ushort)value;
-            return (true, new string[] { "Done" });
-        }
-
-        public static (bool, string[]) ForceEndCommand(string[] args, Player sender)
-        {
-            if (!EventManager.EventActive())
-                return (false, new string[] { "No event is on going" });
-            EventManager.ActiveEvent.OnEnd($"Anulowano event: <color={EventManager.Color}>{EventManager.ActiveEvent.Name}</color>");
-            EventManager.ActiveEvent = null;
-            return (true, new string[] { "Done" });
-        }
-
-        public static (bool, string[]) ForceCommand(string[] args, Player sender)
-        {
-            if (Mistaken.API.RealPlayers.List.Count() < 4 && !PluginHandler.Instance.Config.Dnpn)
-                return (false, new string[] { "You can't use this command. Not enough players!" });
-            else if (EventManager.EventActive())
-                return (false, new string[] { "You can't forcestack events" });
-            var name = string.Join(" ", args).ToLower();
-
-            foreach (var item in EventManager.Events)
-            {
-                if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
-                {
-                    item.Value.Initiate();
-                    EMEvents.OnAdminInvokingEvent(new AdminInvokingEventEventArgs(sender, item.Value));
-
-                    return (true, new string[] { $"<color=green>Activated</color> {item.Value.Name}", item.Value.Description });
-                }
-            }
-
-            return (false, new string[] { "Event not found" });
-        }
-
-        public static (bool, string[]) ListCommand(string[] args, Player sender)
-        {
-            List<string> tor = new List<string>
-            {
-                "Events:",
-            };
-
-            foreach (var item in EventManager.Events)
-                tor.Add($"<color=green>{item.Value.Id}</color>: <color=yellow>{item.Value.Name}</color> <color=red>|</color> {item.Value.Description}");
-
-            return (true, tor.ToArray());
-        }
-
-        public static (bool, string[]) QueueCommand(string[] args, Player sender)
-        {
-            if (args.Length == 0)
-            {
-                if (EventManager.EventQueue.Count == 0)
-                    return (true, new string[] { "Queue is empty" });
-                var t = new List<string>();
-                foreach (var ev in EventManager.EventQueue)
-                {
-                    t.Add(ev.Name);
-                }
-
-                return (true, t.ToArray());
-            }
-            else
-            {
-                var name = string.Join(" ", args).ToLower();
-
-                foreach (var item in EventManager.Events)
-                {
-                    if (item.Value.Name.ToLower() == name || item.Value.Id.ToLower() == name)
-                    {
-                        EventManager.EventQueue.Enqueue(item.Value);
-                        return (true, new string[] { $"<color=green>Enqueued</color> {item.Value.Name}", item.Value.Description });
-                    }
-                }
-
-                return (false, new string[] { "Event not found" });
-            }
-        }
-
-        public static (bool, string[]) PrintWinners(string[] args, Player sender)
-        {
-            var lines = File.ReadAllLines(EventManager.CurrentWinnersFile);
-            for (int i = 0; i < lines.Length; i++)
-            {
-                var content = lines[i].Split(';');
-                lines[i] = content[0] + " - " + content[2] + " wygranych eventów";
-            }
-
-            return (true, lines);
-        }
-
-        /// <inheritdoc/>
         public override string Command => "EventManager";
 
-        /// <inheritdoc/>
         public override string[] Aliases => new string[] { "em" };
 
-        /// <inheritdoc/>
         public override string Description => "Event Manager :)";
 
-        /// <inheritdoc/>
         public string Permission => "*";
 
-        /// <inheritdoc/>
         public string PluginName => nameof(EventManager);
 
         public override string[] Execute(ICommandSender sender, string[] args, out bool success)
         {
             success = false;
             if (args.Length == 0)
-                return new string[] { this.GetUsage() };
+                return new string[] { Usage };
 
-            var admin = Player.Get(sender);
-            string cmd = args[0].ToLower();
-            if (this.subcommands.TryGetValue(cmd, out var commandHandler))
+            var player = Player.Get(sender);
+            string command = args[0].ToLower();
+            if (SubCommands.TryGetValue(command, out var commandHandler))
             {
-                var retuned = commandHandler.Invoke((args.Skip(1).ToArray(), admin));
-                success = retuned.isSuccess;
-                return retuned.message;
+                var retuned = commandHandler.Invoke(new CommandArguments(player, args.Skip(1).ToArray()));
+                success = retuned.Success;
+                return retuned.Response;
             }
-            else
-                return new string[] { "Unknown Command", this.GetUsage() };
+
+            return new string[] { "Unknown Command", Usage };
         }
 
-        private readonly Dictionary<string, Func<(string[], Player), (bool isSuccess, string[] message)>> subcommands = new Dictionary<string, Func<(string[] arg, Player adm), (bool, string[])>>()
+        private static readonly Dictionary<string, Func<CommandArguments, CommandResult>> SubCommands = new ()
         {
-            { "q", (args) => QueueCommand(args.arg, args.adm) },
-            { "queue", (args) => QueueCommand(args.arg, args.adm) },
-            { "g", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
-            { "get", (args) => { return (true, new string[] { "Current event: " + EventManager.ActiveEvent?.Name ?? "None" }); } },
-            { "l", (args) => ListCommand(args.arg, args.adm) },
-            { "list", (args) => ListCommand(args.arg, args.adm) },
-            { "f", (args) => ForceCommand(args.arg, args.adm) },
-            { "force", (args) => ForceCommand(args.arg, args.adm) },
-            { "forceend", (args) => ForceEndCommand(args.arg, args.adm) },
-            { "rwe", (args) => { return (true, new string[] { "Rounds Without Event:" + EventManager.RWE }); } },
-            { "setrwe", (args) => SetRWECommand(args.arg, args.adm) },
-            { "prtwin", (args) => PrintWinners(args.arg, args.adm) },
+            { "q", (args) => QueueCommand(args) },
+            { "queue", (args) => QueueCommand(args) },
+            { "g", (args) => new CommandResult(new string[] { "Current event: " + EventManager.CurrentEvent?.Name ?? "None" }, true) },
+            { "get", (args) => new CommandResult(new string[] { "Current event: " + EventManager.CurrentEvent?.Name ?? "None" }, true) },
+            { "l", (args) => ListCommand() },
+            { "list", (args) => ListCommand() },
+            { "f", (args) => ForceCommand(args) },
+            { "force", (args) => ForceCommand(args) },
+            { "forceend", (args) => ForceEndCommand() },
+            { "rwe", (args) => new CommandResult(new string[] { "Rounds Without Event:" + EventManager.RoundsWithoutEvent }, true) },
+            { "setrwe", (args) => SetRWECommand(args) },
+            { "prtwin", (args) => PrintWinners() },
         };
 
-        private string GetUsage()
+        private static readonly string Usage = string.Join(Environment.NewLine, new string[]
         {
-            return
-                "\n () = optional argument" +
-                "\n [] = required argument" +
-                "\n EventManager list - list of available events" +
-                "\n EventManager force [event name] - initialized specified event" +
-                "\n EventManager forceend - deinitializes current event" +
-                "\n EventManager queue (event name) - displays the current queue of events or adds an event to the queue (if specified)" +
-                "\n EventManager get - gets the name of current event" +
-                "\n EventManager rwe - rounds without events" +
-                "\n EventManager setrwe [number] - sets rounds without events" +
-                "\n EventManager prtwin - prints a list of this 2 weeks event winners"
-                ;
+            "() = optional argument",
+            "[] = required argument",
+            "EventManager list - list of available events",
+            "EventManager force [event id/name without spaces] - initialized specified event",
+            "EventManager forceend - deinitializes current event",
+            "EventManager queue (event id/name without spaces) - displays the current queue of events or adds an event to the queue",
+            "EventManager get - gets the name of current event",
+            "EventManager rwe - gets the rounds without events",
+            "EventManager setrwe [number] - sets rounds without events",
+            "EventManager prtwin - prints a list of this 2 weeks event winners",
+        });
+
+        private static CommandResult QueueCommand(CommandArguments cmdArgs)
+        {
+            if (cmdArgs.Arguments.Length == 0)
+            {
+                if (EventManager.EventQueue.Count == 0)
+                    return new CommandResult(new string[] { "Queue is empty" }, true);
+
+                return new CommandResult(EventManager.EventQueue.Select(x => x.Name).ToArray(), true);
+            }
+
+            var name = cmdArgs.Arguments[0].ToLower();
+            var ev = EventManager.Events.FirstOrDefault(x => x.Key == name || x.Value.Name.ToLower() == name).Value;
+            if (ev is null)
+                return new CommandResult(new string[] { "Event not found" });
+
+            EventManager.EventQueue.Enqueue(ev);
+            return new CommandResult(new string[] { $"<color=green>Enqueued</color> {ev.Name}", ev.Description }, true);
+        }
+
+        private static CommandResult ListCommand()
+        {
+            List<string> tor = new ()
+            {
+                "Events:",
+            };
+
+            foreach (var ev in EventManager.Events)
+                tor.Add($"<color=green>{ev.Value.Id}</color>: <color=yellow>{ev.Value.Name}</color> <color=red>|</color> {ev.Value.Description}");
+
+            return new CommandResult(tor.ToArray(), true);
+        }
+
+        private static CommandResult ForceCommand(CommandArguments cmdArgs)
+        {
+            if (cmdArgs.Arguments.Length == 0)
+                return new CommandResult(new string[] { "Wrong args", "EventManager force [event id/name without spaces]" });
+
+            var name = cmdArgs.Arguments[0].ToLower();
+            var ev = EventManager.Events.FirstOrDefault(x => x.Key == name || x.Value.Name.ToLower() == name).Value;
+            if (ev is null)
+                return new CommandResult(new string[] { "Event not found" });
+
+            if (EventManager.IsEventActive)
+            {
+                EventManager.EventQueue.Enqueue(ev);
+                return new CommandResult(new string[] { $"<color=green>Enqueued</color> {ev.Name}", ev.Description }, true);
+            }
+
+            if (ev is IRequiredPlayers requiredPlayers && requiredPlayers.PlayerCount > RealPlayers.List.Count() && !PluginHandler.Instance.Config.DoNotCountPlayers)
+                return new CommandResult(new string[] { "You can't use this command. Not enough players!" });
+
+            EventHandler.OnAdminInvokingEvent(new AdminInvokingEventEventArgs(cmdArgs.Sender, ev));
+            ev.Initiate();
+            return new CommandResult(new string[] { $"<color=green>Activated</color> {ev.Name}", ev.Description }, true);
+        }
+
+        private static CommandResult ForceEndCommand()
+        {
+            if (!EventManager.IsEventActive)
+                return new CommandResult(new string[] { "No event is on going" });
+
+            EventManager.CurrentEvent.OnEnd($"Anulowano event: <color={EventManager.Color}>{EventManager.CurrentEvent.Name}</color>");
+            return new CommandResult(new string[] { "Done" }, true);
+        }
+
+        private static CommandResult SetRWECommand(CommandArguments cmdArgs)
+        {
+            if (!cmdArgs.Sender.IsDev())
+                return new CommandResult(new string[] { "This command is only for the Devs!" });
+
+            if (cmdArgs.Arguments.Length == 0)
+                return new CommandResult(new string[] { "Wrong args", "EventManager setrwevent [amount]" });
+
+            if (cmdArgs.Arguments[1] == string.Empty)
+                return new CommandResult(new string[] { "Wrong args", "EventManager setrwevent [amount]" });
+
+            if (ushort.TryParse(cmdArgs.Arguments[1], out var value))
+            {
+                EventManager.RoundsWithoutEvent = value;
+                return new CommandResult(new string[] { "Done" }, true);
+            }
+
+            return new CommandResult(new string[] { "You must provide a value between 0 and 65535" });
+        }
+
+        private static CommandResult PrintWinners()
+        {
+            var lines = File.ReadAllLines(EventManager.WinnersFilePath);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var content = lines[i].Split(';');
+                lines[i] = content[0] + " - " + content[2] + " wygranych eventów";
+            }
+
+            return new CommandResult(lines, true);
+        }
+
+        private struct CommandResult
+        {
+            public readonly string[] Response;
+
+            public readonly bool Success;
+
+            public CommandResult(string[] response, bool success = false)
+            {
+                this.Response = response;
+                this.Success = success;
+            }
+        }
+
+        private struct CommandArguments
+        {
+            public readonly Player Sender;
+
+            public readonly string[] Arguments;
+
+            public CommandArguments(Player sender, string[] arguments)
+            {
+                this.Sender = sender;
+                this.Arguments = arguments;
+            }
         }
     }
 }

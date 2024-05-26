@@ -18,7 +18,7 @@ namespace Mistaken.EventManager.EventArgs
         /// </summary>
         /// <param name="sender"><inheritdoc cref="Sender"/></param>
         /// <param name="emEvent"><inheritdoc cref="EventName"/></param>
-        public AdminInvokingEventEventArgs(Player sender, IEMEventClass emEvent)
+        public AdminInvokingEventEventArgs(Player sender, EventBase emEvent)
         {
             this.Sender = sender;
             this.EventName = emEvent.Name;

@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,29 +13,22 @@ using UnityEngine;
 
 namespace Mistaken.EventManager
 {
-    /// <summary>
-    /// Extensions.
-    /// </summary>
     internal static class Extensions
     {
-        /// <summary>
-        /// Waits 0.1s, changes role, waits 1s, sets position if not default.
-        /// </summary>
-        /// <param name="player">player.</param>
-        /// <param name="role">role.</param>
-        /// <param name="pos">position.</param>
-        public static void SlowChangeRole(this Player player, RoleType role, Vector3 pos = default) => Timing.RunCoroutine(SlowFC(player, role, pos));
+        public static void SlowChangeRole(this Player player, RoleType role, Vector3 pos = default)
+            => EventManager.Instance.RunCoroutine(SlowFC(player, role, pos), "EventManager_SlowFC");
 
-        internal static bool UpdateInWinnersFile(this Player player)
+        public static void UpdateInWinnersFile(this Player player)
         {
-            if (!player.RemoteAdminAccess)
+            var lines = File.ReadAllLines(EventManager.WinnersFilePath);
+            var playerInFile = lines.FirstOrDefault(x => x.Split(';')[1] == player.UserId);
+            if (playerInFile is null)
             {
-                var lines = File.ReadAllLines(EventManager.CurrentWinnersFile);
-                File.AppendAllLines(EventManager.CurrentWinnersFile, new string[] { $"{player.Nickname};{player.UserId};{(lines.Any(x => x.Contains(player.Nickname)) ? int.Parse(lines.First(x => x.Contains(player.Nickname)).Split(';')[2]) + 1 : 1)}" });
-                return true;
+                File.AppendAllLines(EventManager.WinnersFilePath, new string[] { $"{player.Nickname};{player.UserId};1" });
+                return;
             }
-            else
-                return false;
+
+            File.AppendAllLines(EventManager.WinnersFilePath, new string[] { $"{player.Nickname};{player.UserId};{int.Parse(playerInFile.Split(';')[2]) + 1}" });
         }
 
         private static IEnumerator<float> SlowFC(Player player, RoleType role, Vector3 pos = default)

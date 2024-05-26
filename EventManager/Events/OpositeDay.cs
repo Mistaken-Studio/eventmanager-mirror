@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class OpositeDay : IEMEventClass
+    internal class OpositeDay : EventBase
     {
         public override string Id => "oday";
 
@@ -21,12 +21,7 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "OpositeDay";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
-        {
-            // { "", "" }
-        };
-
-        public override void OnIni()
+        public override void Initialize()
         {
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Exiled.Events.Handlers.Player.ChangingRole += this.Player_ChangingRole;
@@ -41,7 +36,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
             Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
@@ -103,7 +98,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)
         {
-            this.DeInitiate();
+            this.Deinitiate();
         }
     }
 }

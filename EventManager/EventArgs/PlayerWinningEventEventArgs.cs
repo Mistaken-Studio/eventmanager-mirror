@@ -18,7 +18,7 @@ namespace Mistaken.EventManager.EventArgs
         /// </summary>
         /// <param name="winner"><inheritdoc cref="Winner"/></param>
         /// <param name="emEvent"><inheritdoc cref="EventName"/></param>
-        public PlayerWinningEventEventArgs(Player winner, IEMEventClass emEvent)
+        public PlayerWinningEventEventArgs(Player winner, EventBase emEvent)
         {
             this.Winner = winner;
             this.EventName = emEvent.Name;

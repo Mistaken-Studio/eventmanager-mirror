@@ -11,25 +11,22 @@ using HarmonyLib;
 
 namespace Mistaken.EventManager
 {
-    /// <inheritdoc/>
-    public class PluginHandler : Plugin<Config>
+    internal class PluginHandler : Plugin<Config>
     {
-        /// <inheritdoc/>
+        public static PluginHandler Instance { get; private set; }
+
+        public static Harmony Harmony { get; private set; }
+
         public override string Author => "Mistaken Devs";
 
-        /// <inheritdoc/>
         public override string Name => "EventManager";
 
-        /// <inheritdoc/>
         public override string Prefix => "EM";
 
-        /// <inheritdoc/>
         public override PluginPriority Priority => PluginPriority.Higher - 1;
 
-        /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(5, 1, 3);
+        public override Version RequiredExiledVersion => new (5, 2, 2);
 
-        /// <inheritdoc/>
         public override void OnEnabled()
         {
             Instance = this;
@@ -41,16 +38,11 @@ namespace Mistaken.EventManager
             base.OnEnabled();
         }
 
-        /// <inheritdoc/>
         public override void OnDisabled()
         {
             Harmony.UnpatchAll();
             API.Diagnostics.Module.OnDisable(this);
             base.OnDisabled();
         }
-
-        internal static PluginHandler Instance { get; private set; }
-
-        internal static Harmony Harmony { get; private set; }
     }
 }

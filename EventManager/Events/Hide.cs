@@ -17,7 +17,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class Hide : IEMEventClass, IAnnouncePlayersAlive
+    internal class Hide : EventBase, IAnnouncePlayersAlive
     {
         public override string Id => "hide";
 
@@ -25,7 +25,7 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "Hide";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "D_Info", "Twoim zadaniem jest ucieczka do <color=grey>HCZ</color>. <color=lime>Checkpointy</color> otwierają się za 5 minut, w międzyczasie ukryj się przed <color=red>SCP-939</color>." },
             { "SCP_Info", "Twoim zadaniem jest znalezienie <color=orange>klas D</color> i ich zabicie." },
@@ -33,10 +33,10 @@ namespace Mistaken.EventManager.Events
 
         public bool ClearPrevious => true;
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.escapeDoors.Clear();
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
@@ -60,15 +60,15 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
         }
 
-        private readonly List<Door> checkpointdoors = new List<Door>();
+        private readonly List<Door> checkpointdoors = new ();
 
-        private readonly List<DoorVariant> escapeDoors = new List<DoorVariant>();
+        private readonly List<DoorVariant> escapeDoors = new ();
 
         private void Server_RoundStarted()
         {
@@ -132,7 +132,7 @@ namespace Mistaken.EventManager.Events
             yield return Timing.WaitForSeconds(10f);
             while (this.Active)
             {
-                List<Player> winners = new List<Player>();
+                List<Player> winners = new();
                 foreach (var player in RealPlayers.List)
                 {
                     if (player.CurrentRoom?.Zone == ZoneType.HeavyContainment)

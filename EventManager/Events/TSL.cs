@@ -24,6 +24,8 @@ using NorthwoodLib.Pools;
 using Scp914;
 using UnityEngine;
 
+#pragma warning disable SA1402 // File may only contain a single type
+
 namespace Mistaken.EventManager.Events
 {
     internal enum TSLClassType
@@ -42,8 +44,7 @@ namespace Mistaken.EventManager.Events
         ATTD = 2,
     }
 
-#pragma warning disable SA1402
-    internal class TSL : IEMEventClass
+    internal class TSL : EventBase
     {
         public override string Id => "tsl";
 
@@ -51,7 +52,7 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "TSL";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>
+        public Dictionary<string, string> Translations => new ()
         {
             { "I_Info", "Jesteś <color=lime>Niewinnym</color>. Wspólnie z <color=#00B7EB>Detektywem/ami</color> musicie odgadnąć kto jest <color=red>Zdrajcą</color>. Statystyki pod komendą \".tsl round\"" },
             { "T_Info", "Jesteś <color=red>Zdrajcą</color>. Twoim zadaniem jest zabicie wszystkich <color=lime>Niewinnych</color> i <color=#00B7EB>Detektywów</color>. Dostęp do sklepu pod komendą \".tsl shop\"" },
@@ -106,14 +107,14 @@ namespace Mistaken.EventManager.Events
             },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.Players.Clear();
             this.staticPlayers.Clear();
             this.traitorTesterUses = 0;
             LightContainmentZoneDecontamination.DecontaminationController.Singleton.disableDecontamination = true;
             Map.Pickups.ToList().ForEach(x => x.Destroy());
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             PluginHandler.Harmony.Patch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), new HarmonyMethod(typeof(Scp914UpgradePatch).GetMethod("Prefix", BindingFlags.Public | BindingFlags.Static)));
             Exiled.Events.Handlers.Player.Died += this.Player_Died;
@@ -126,7 +127,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.Dying += this.Player_Dying;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             PluginHandler.Harmony.Unpatch(typeof(Scp914Upgrader).GetMethod("Upgrade", new Type[] { typeof(Collider[]), typeof(Vector3), typeof(Scp914Mode), typeof(Scp914KnobSetting) }), HarmonyPatchType.Prefix);
             Exiled.Events.Handlers.Player.Died -= this.Player_Died;
@@ -141,10 +142,13 @@ namespace Mistaken.EventManager.Events
 
         public string TSL_RoundInfo()
         {
-            List<string> round = new List<string>();
-            round.Add("<color=grey>Przydatne statystyki:</color>");
-            round.Add($"<color=grey>Pozostało {this.Players.Count(x => x.Value.Item1 == TSLClassType.Traitor)} <color=red>Zdrajców</color>, {this.Players.Count(x => x.Value.Item1 == TSLClassType.Innocent)} <color=lime>Niewinnych</color>, {this.Players.Count(x => x.Value.Item1 == TSLClassType.Detective)} <color=#00B7EB>Detektywów</color></color>");
-            round.Add("<color=grey>Lista Graczy:</color>");
+            List<string> round = new ()
+            {
+                "<color=grey>Przydatne statystyki:</color>",
+                $"<color=grey>Pozostało {this.Players.Count(x => x.Value.Item1 == TSLClassType.Traitor)} <color=red>Zdrajców</color>, {this.Players.Count(x => x.Value.Item1 == TSLClassType.Innocent)} <color=lime>Niewinnych</color>, {this.Players.Count(x => x.Value.Item1 == TSLClassType.Detective)} <color=#00B7EB>Detektywów</color></color>",
+                "<color=grey>Lista Graczy:</color>",
+            };
+
             foreach (var item in this.staticPlayers)
             {
                 if (this.Players.ContainsKey(item.Key))
@@ -224,7 +228,7 @@ namespace Mistaken.EventManager.Events
             this.traitorTesterUses++;
         }
 
-        private readonly Dictionary<Player, (TSLClassType, TSLClassType)> staticPlayers = new Dictionary<Player, (TSLClassType, TSLClassType)>();
+        private readonly Dictionary<Player, (TSLClassType, TSLClassType)> staticPlayers = new ();
 
         private int traitorTesterUses = 0;
 
@@ -477,7 +481,8 @@ namespace Mistaken.EventManager.Events
 
         private void Player_Died(Exiled.Events.EventArgs.DiedEventArgs ev)
         {
-            if (!ev.Target.IsConnected) return;
+            if (!ev.Target.IsConnected)
+                return;
             CustomInfoHandler.Set(ev.Target, "tsl_health", string.Empty);
             if (this.Players.TryGetValue(ev.Target, out (TSLClassType, int, List<TSLItemType>) targetItems))
             {
@@ -558,9 +563,12 @@ namespace Mistaken.EventManager.Events
 
         private void TSL_RoundSummary(string winner)
         {
-            List<string> roundSummary = new List<string>();
-            roundSummary.Add($"Rundę wygrywają {winner}!");
-            roundSummary.Add("Klasy graczy:");
+            List<string> roundSummary = new ()
+            {
+                $"Rundę wygrywają {winner}!",
+                "Klasy graczy:",
+            };
+
             foreach (var item in this.staticPlayers)
             {
                 switch (item.Value.Item1)
@@ -577,57 +585,54 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            foreach (Player player in RealPlayers.List)
+            foreach (Player player in RealPlayers.List.ToArray())
                 player.SendConsoleMessage(string.Join("\n", roundSummary), "green");
         }
     }
 
-    [CommandSystem.CommandHandler(typeof(CommandSystem.ClientCommandHandler))]
+    [CommandHandler(typeof(ClientCommandHandler))]
     internal class ShopCommandHandler : IBetterCommand
     {
-        public override string Command => "TSL";
-
-        public override string[] Aliases => new string[] { "tsl" };
+        public override string Command => "tsl";
 
         public override string Description => "TSL command";
 
         public override string[] Execute(ICommandSender sender, string[] args, out bool success)
         {
             success = false;
-            var player = sender.GetPlayer();
-            if (!(EventManager.ActiveEvent is TSL)) return new string[] { "Ten event aktualnie nie trwa" };
+            var player = Player.Get(sender);
+            if (EventManager.CurrentEvent is not TSL tsl)
+                return new string[] { "Ten event aktualnie nie trwa" };
+
+            this.tsl = tsl;
             player.SendConsoleMessage("TSL | " + this.Execute(player, args), "green");
             success = true;
             return new string[] { "Done" };
         }
 
+        private TSL tsl;
+
         private string Execute(Player player, string[] args)
         {
-            if (args.Length != 0)
-            {
-                switch (args[0].ToLower())
-                {
-                    case "round":
-                        return (EventManager.ActiveEvent as TSL).TSL_RoundInfo();
-                    case "event":
-                        return this.RequestEvent(player, args.Skip(1).ToArray());
-                    case "shop":
-                        return this.RequestItem(player, args.Skip(1).ToArray());
-                    default:
-                        return "Nieznany argument. Użyj \"Round\", \"Event\" bądź \"Shop\"";
-                }
-            }
-            else
+            if (args.Length == 0)
                 return "Musisz sprecyzować czy chcesz użyć \"Round\", \"Event\" bądź \"Shop\"";
+
+            return args[0].ToLower() switch
+            {
+                "round" => this.tsl.TSL_RoundInfo(),
+                "event" => this.RequestEvent(player, args.Skip(1).ToArray()),
+                "shop" => this.RequestItem(player, args.Skip(1).ToArray()),
+                _ => "Nieznany argument. Użyj \"Round\", \"Event\" bądź \"Shop\"",
+            };
         }
 
         private string RequestItem(Player player, string[] args)
         {
-            if (((EventManager.ActiveEvent as TSL).Players.TryGetValue(player, out (TSLClassType, int, List<TSLItemType>) playerItems) && playerItems.Item1 == TSLClassType.Traitor) || playerItems.Item1 == TSLClassType.Detective)
+            if ((this.tsl.Players.TryGetValue(player, out (TSLClassType, int, List<TSLItemType>) playerItems) && playerItems.Item1 == TSLClassType.Traitor) || playerItems.Item1 == TSLClassType.Detective)
             {
                 if (args.Length != 0)
                 {
-                    if ((EventManager.ActiveEvent as TSL).ShopItems.TryGetValue(string.Join(string.Empty, args).ToLower(), out (string, TSLClassType[], int, ItemType, TSLItemType) items))
+                    if (this.tsl.ShopItems.TryGetValue(string.Join(string.Empty, args).ToLower(), out (string, TSLClassType[], int, ItemType, TSLItemType) items))
                     {
                         if (playerItems.Item2 >= items.Item3)
                         {
@@ -637,11 +642,14 @@ namespace Mistaken.EventManager.Events
                                 {
                                     if (items.Item5 != TSLItemType.None)
                                     {
-                                        List<TSLItemType> tslItems = new List<TSLItemType>();
-                                        tslItems.Add(items.Item5);
+                                        List<TSLItemType> tslItems = new ()
+                                        {
+                                            items.Item5,
+                                        };
+
                                         foreach (var element in playerItems.Item3)
                                             tslItems.Add(element);
-                                        (EventManager.ActiveEvent as TSL).Players[player] = (playerItems.Item1, playerItems.Item2 - items.Item3, tslItems);
+                                        this.tsl.Players[player] = (playerItems.Item1, playerItems.Item2 - items.Item3, tslItems);
                                         return $"Kupiłeś {items.Item1}";
                                     }
                                     else
@@ -650,7 +658,7 @@ namespace Mistaken.EventManager.Events
                                         {
                                             if (items.Item4 == ItemType.GunCOM18)
                                             {
-                                                // ZMIENIĆ TO JAK NAJSZYBCIEJ
+                                                // TODO: ZMIENIĆ TO JAK NAJSZYBCIEJ
                                                 if (playerItems.Item1 == TSLClassType.Traitor)
                                                 {
                                                     player.AddItem(items.Item4);
@@ -692,23 +700,23 @@ namespace Mistaken.EventManager.Events
 
         private string RequestEvent(Player player, string[] args)
         {
-            if ((EventManager.ActiveEvent as TSL).Players.TryGetValue(player, out (TSLClassType, int, List<TSLItemType>) playerItems) && playerItems.Item1 == TSLClassType.Traitor)
+            if (this.tsl.Players.TryGetValue(player, out (TSLClassType, int, List<TSLItemType>) playerItems) && playerItems.Item1 == TSLClassType.Traitor)
             {
                 if (args.Length != 0)
                 {
                     var arg = string.Join(string.Empty, args).ToLower();
-                    if ((EventManager.ActiveEvent as TSL).TraitorEvents.TryGetValue(arg, out (string, int) items))
+                    if (this.tsl.TraitorEvents.TryGetValue(arg, out (string, int) items))
                     {
                         if (playerItems.Item2 >= items.Item2)
                         {
-                            if (!(EventManager.ActiveEvent as TSL).Cooldowns.TryGetValue(arg, out DateTime time))
-                                (EventManager.ActiveEvent as TSL).Cooldowns.Add(arg, DateTime.Now);
+                            if (!this.tsl.Cooldowns.TryGetValue(arg, out DateTime time))
+                                this.tsl.Cooldowns.Add(arg, DateTime.Now);
                             if (DateTime.Now < time)
                                 return $"Musisz odczekać jeszcze {(time - DateTime.Now).Seconds} sekund";
                             else
                             {
-                                (EventManager.ActiveEvent as TSL).Cooldowns[arg] = DateTime.Now.AddSeconds(90);
-                                (EventManager.ActiveEvent as TSL).Players[player] = (playerItems.Item1, playerItems.Item2 - items.Item2, playerItems.Item3);
+                                this.tsl.Cooldowns[arg] = DateTime.Now.AddSeconds(90);
+                                this.tsl.Players[player] = (playerItems.Item1, playerItems.Item2 - items.Item2, playerItems.Item3);
                                 switch (arg)
                                 {
                                     case "blackout":
@@ -720,7 +728,7 @@ namespace Mistaken.EventManager.Events
 
                                     case "grenade914":
                                         {
-                                            List<Vector3> positions = new List<Vector3>() { new Vector3(-7f, 1f, 6.3f), new Vector3(-7.4f, 1f, 6.3f) };
+                                            List<Vector3> positions = new () { new Vector3(-7f, 1f, 6.3f), new Vector3(-7.4f, 1f, 6.3f) };
                                             foreach (var pos in positions)
                                             {
                                                 var room = Room.List.First(x => x.Type == RoomType.Lcz914);
@@ -766,9 +774,12 @@ namespace Mistaken.EventManager.Events
 
         private string GetShopUsage(TSLClassType classType, int credits)
         {
-            List<string> tor = new List<string>();
-            tor.Add("Przedmioty dostępne w sklepie:");
-            foreach (var item in (EventManager.ActiveEvent as TSL).ShopItems.Where(x => x.Value.Item2.Contains(classType)))
+            List<string> tor = new ()
+            {
+                "Przedmioty dostępne w sklepie:",
+            };
+
+            foreach (var item in this.tsl.ShopItems.Where(x => x.Value.Item2.Contains(classType)))
                 tor.Add($"{item.Value.Item1} za {item.Value.Item3} kretydów");
             tor.Add($"Posiadasz {credits} kredytów");
             return string.Join("\n", tor);
@@ -776,9 +787,11 @@ namespace Mistaken.EventManager.Events
 
         private string GetEventUsage(int credits)
         {
-            List<string> tor = new List<string>();
-            tor.Add("Dostępne eventy:");
-            foreach (var item in (EventManager.ActiveEvent as TSL).TraitorEvents)
+            List<string> tor = new ()
+            {
+                "Dostępne eventy:",
+            };
+            foreach (var item in this.tsl.TraitorEvents)
                 tor.Add($"{item.Key} - {item.Value.Item1} za {item.Value.Item2} kredytów");
             tor.Add($"Posiadasz {credits} kredytów");
             return string.Join("\n", tor);
@@ -791,7 +804,7 @@ namespace Mistaken.EventManager.Events
         public static bool Prefix(Collider[] intake, Vector3 moveVector, Scp914Mode mode, Scp914KnobSetting setting)
         {
             HashSet<GameObject> hashSet = HashSetPool<GameObject>.Shared.Rent();
-            HashSet<Player> upgradedPlayers = new HashSet<Player>();
+            HashSet<Player> upgradedPlayers = new ();
             for (int i = 0; i < intake.Length; i++)
             {
                 GameObject gameObject = intake[i].transform.root.gameObject;
@@ -802,7 +815,7 @@ namespace Mistaken.EventManager.Events
                 }
             }
 
-            (EventManager.ActiveEvent as TSL).Scp914_UpgradingPlayers(upgradedPlayers, setting);
+            (EventManager.CurrentEvent as TSL).Scp914_UpgradingPlayers(upgradedPlayers, setting);
             HashSetPool<GameObject>.Shared.Return(hashSet);
 
             return false;

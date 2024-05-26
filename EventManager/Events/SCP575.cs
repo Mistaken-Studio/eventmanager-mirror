@@ -16,7 +16,7 @@ using PlayerStatsSystem;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class SCP575 : IEMEventClass
+    internal class SCP575 : EventBase
     {
         public override string Id => "575";
 
@@ -24,18 +24,18 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "SCP-575";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "H_Info", "Nastąpił wyłom <color=gray>SCP-575</color>! Zdobądźcie latarkę lub zamontujcie ją na broni.. inaczej [REDACTED]" },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
@@ -54,7 +54,7 @@ namespace Mistaken.EventManager.Events
 
         private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)
         {
-            this.DeInitiate();
+            this.Deinitiate();
         }
 
         private IEnumerator<float> Lights()

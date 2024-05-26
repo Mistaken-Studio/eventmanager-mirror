@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Mistaken.EventManager.Events
 {
-    internal class CTF : IEMEventClass
+    internal class CTF : EventBase
     {
         public override string Id => "ctf";
 
@@ -23,7 +23,7 @@ namespace Mistaken.EventManager.Events
 
         public override string Name => "CTF";
 
-        public override Dictionary<string, string> Translations => new Dictionary<string, string>()
+        public Dictionary<string, string> Translations => new ()
         {
             { "MTF_Task", "Jesteś członkiem <color=blue>MFO</color>. Waszym zadaniem jest przejęcie flagi drużyny przeciwnej (<color=green>CI</color>). Bazy odznaczają się obecnością <color=yellow>latarki</color> w pomieszczeniu." },
             { "MTF_Flag", "Gracz <color=green>$player</color> przejął flagę drużyny <color=blue>MFO</color>" },
@@ -31,17 +31,17 @@ namespace Mistaken.EventManager.Events
             { "CI_Flag", "Gracz <color=blue>$player</color> przejął flagę drużyny <color=green>CI</color>" },
         };
 
-        public override void OnIni()
+        public override void Initialize()
         {
             this.tickets["MTF"] = 0;
             this.tickets["CI"] = 0;
-            Mistaken.API.Utilities.Map.RespawnLock = true;
+            API.Utilities.Map.RespawnLock = true;
             Round.IsLocked = true;
             var door = Door.List.First(x => x.Type == DoorType.CheckpointEntrance);
             door.ChangeLock(DoorLockType.DecontEvacuate);
             door.IsOpen = true;
             var randomroom = Room.List.Where(r => r.Type == RoomType.Hcz079 || r.Type == RoomType.Hcz106 || r.Type == RoomType.HczChkpA || r.Type == RoomType.HczChkpB).ToList();
-            this.mtfRoom = randomroom[UnityEngine.Random.Range(0, randomroom.Count)];
+            this.mtfRoom = randomroom[Random.Range(0, randomroom.Count)];
             foreach (var room in Room.List)
             {
                 if (Vector3.Distance(room.Position, this.mtfRoom.Position) >= 90 && randomroom.Contains(room) && this.ciRoom == null)
@@ -65,7 +65,7 @@ namespace Mistaken.EventManager.Events
             }
         }
 
-        public override void OnDeIni()
+        public override void Deinitialize()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
             Exiled.Events.Handlers.Player.PickingUpItem -= this.Player_PickingUpItem;
@@ -75,7 +75,7 @@ namespace Mistaken.EventManager.Events
             Exiled.Events.Handlers.Player.ChangingRole -= this.Player_ChangingRole;
         }
 
-        private readonly Dictionary<string, int> tickets = new Dictionary<string, int>()
+        private readonly Dictionary<string, int> tickets = new ()
         {
             { "CI", 0 },
             { "MTF", 0 },
